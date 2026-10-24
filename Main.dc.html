@@ -1,0 +1,982 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>X-Matrix builder</title>
+<script src="./vendor/react.js"></script>
+<script src="./vendor/react-dom.js"></script>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=IBM+Plex+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#3346D3}a:hover{color:#1F2DA0}
+.stage{left:0;top:0;width:0;height:0;transform-origin:0 0}
+.tri{border:0;padding:0;margin:0;cursor:pointer;background:var(--tint);transition:background .2s ease,opacity .3s ease}
+.tri:hover{background:var(--tint2)}
+.tri:focus-visible{outline:none;background:var(--tint2)}
+.tri.on{background:var(--ac)}
+.tl{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;box-sizing:border-box;pointer-events:none}
+.eyebrow{font:600 10px/1.2 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--ac)}
+.ttl{font:650 15px/1.2 Inter,system-ui,sans-serif;color:#16181D;margin-top:5px}
+.cnt{font:500 11px/1.2 Inter,system-ui,sans-serif;color:#555C68;margin-top:5px}
+.tri.on .eyebrow,.tri.on .ttl,.tri.on .cnt{color:#fff}
+.strip{box-sizing:border-box;background:#fff;box-shadow:0 0 0 .5px #D9DDE3}
+.strip.hl{background:var(--tint)}
+.strip.editing{background:#fff;box-shadow:0 0 0 .5px var(--ac)}
+.lab{display:flex;align-items:center;gap:8px;padding:0 8px 0 10px;box-sizing:border-box}
+button.lab{border:0;margin:0;background:transparent;font:inherit;color:inherit;cursor:pointer;text-align:left}
+button.lab:hover .txt{color:var(--ac)}
+button.lab:focus-visible{outline:2px solid var(--ac);outline-offset:-2px}
+.badge{flex:0 0 auto;min-width:20px;font:600 10.5px/1 'IBM Plex Mono',ui-monospace,monospace;color:var(--ac)}
+.txt{flex:1;min-width:0;font:500 12.5px/1.2 Inter,system-ui,sans-serif;color:#1F232A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.txt.empty{color:#6B7280;font-style:italic;font-weight:400}
+.inp{flex:1;min-width:0;height:28px;border:0;border-bottom:1.5px solid var(--ac);border-radius:0;background:transparent;font:500 12.5px/1 Inter,system-ui,sans-serif;color:#16181D;padding:0 4px;outline:none}
+.inp:focus{background:var(--tint)}
+.inp::placeholder{color:#7A818C;font-weight:400}
+.del{flex:0 0 auto;width:26px;height:26px;border:0;border-radius:6px;background:transparent;color:#6B7280;cursor:pointer;display:grid;place-items:center;padding:0}
+.del:hover{background:#FDECEC;color:#B42318}
+.add{box-sizing:border-box;border:1.5px dashed var(--ac);border-radius:4px;background:rgba(255,255,255,.75);animation:pop .35s ease both}
+.add .lab{color:var(--ac);font:600 12.5px/1 Inter,system-ui,sans-serif;justify-content:center;gap:6px}
+.add:hover{background:var(--tint)}
+@keyframes pop{from{opacity:0}to{opacity:1}}
+.cell{width:44px;height:44px;box-sizing:border-box;border:0;margin:0;padding:0;background:#fff;box-shadow:0 0 0 .5px #D9DDE3;cursor:pointer;display:grid;place-items:center}
+.cell.cross{background:#F1F3F7}
+.cell:hover{background:#E6EAF1}
+.cell:focus-visible{outline:2px solid #3346D3;outline-offset:-2px}
+.dot{width:14px;height:14px;border-radius:50%;box-sizing:border-box;transition:transform .15s ease}
+.dot.m0{opacity:0}
+.cell:hover .dot.m0{opacity:1;border:1.5px dashed #8A919C}
+.dot.m1{background:#16181D}
+.dot.m2{border:2px solid #16181D}
+.cell:active .dot{transform:scale(.8)}
+.hub{border:0;padding:0;margin:0;border-radius:50%;background:#fff;box-shadow:0 0 0 1px #D9DDE3,0 2px 6px rgba(16,24,40,.08);color:#16181D;cursor:pointer;display:grid;place-items:center}
+.hub:hover{background:#16181D;color:#fff}
+.otag{border:0;margin:0;padding:0;background:transparent;cursor:pointer}
+.otag .lab{justify-content:center;font:600 10px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.08em;text-transform:uppercase;color:var(--ac)}
+.otag:hover .lab{text-decoration:underline}
+.title-inp{border:0;background:transparent;font:650 16px/1.2 Inter,system-ui,sans-serif;color:#16181D;padding:6px 8px;border-radius:8px;min-width:0;width:360px;max-width:100%;outline:none}
+.title-inp:hover{background:#F0F1F4}
+.title-inp:focus{background:#F0F1F4;box-shadow:0 0 0 2px #3346D3}
+.chip{height:40px;padding:0 12px;border:0;border-radius:8px;background:transparent;font:500 13px/1 Inter,system-ui,sans-serif;color:#3A404A;display:flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap}
+.chip:hover{color:#16181D;background:#E7E9ED}
+.chip.on{background:#fff;color:#16181D;box-shadow:0 1px 2px rgba(16,24,40,.08),0 0 0 1px #DADDE3}
+.btn{height:44px;padding:0 16px;border-radius:10px;border:1px solid #D5D9E0;background:#fff;font:500 13.5px/1 Inter,system-ui,sans-serif;color:#16181D;display:inline-flex;align-items:center;gap:8px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:#F3F4F6}
+.btn.pri{background:#16181D;border-color:#16181D;color:#fff}
+.btn.pri:hover{background:#2C3038}
+.btn.sm{height:36px;padding:0 12px;font-size:13px;border-radius:8px}
+.btn.on{background:#16181D;border-color:#16181D;color:#fff}
+.icon-btn{width:36px;height:36px;border:0;border-radius:8px;background:transparent;color:#3A404A;cursor:pointer;display:grid;place-items:center;padding:0}
+.icon-btn:hover{background:#EEF0F3;color:#16181D}
+.icon-btn:disabled{opacity:.35;cursor:default;background:transparent}
+.icon-btn:focus-visible{outline:2px solid #3346D3;outline-offset:1px}
+.lg-dot{display:inline-block;width:11px;height:11px;border-radius:50%;box-sizing:border-box;vertical-align:-1px}
+.md{flex:1;min-height:0;width:100%;box-sizing:border-box;resize:none;border:0;outline:none;padding:16px 18px 24px;background:#FBFBFC;color:#16181D;font:400 13px/1.65 'IBM Plex Mono',ui-monospace,monospace;tab-size:2;white-space:pre;overflow:auto}
+.md:focus{background:#fff;box-shadow:inset 0 0 0 2px #3346D3}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:999px;font:600 11.5px/1 Inter,system-ui,sans-serif;white-space:nowrap}
+.pill.ok{background:#E5F4EA;color:#0E6B36}
+.pill.err{background:#FDECEC;color:#A11B12}
+code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0F3;padding:2px 5px;border-radius:4px;color:#16181D}
+</style>
+</helmet>
+<div ref="{{ setVp }}" style="position: relative; width: 100%; height: 100vh; min-height: 640px; overflow: hidden; background-color: #F3F4F6; font-family: Inter, system-ui, sans-serif; color: #16181D">
+
+<div style="position: absolute; left: 0; top: 0; bottom: 0; overflow: hidden; background-color: #F3F4F6; background-image: radial-gradient(#DCDFE5 1px, transparent 1px); background-size: 22px 22px; {{ matrixPaneStyle }}">
+
+<div class="stage" style="position: absolute; {{ stageStyle }}">
+<sc-for list="{{ tris }}" as="t" hint-placeholder-count="4">
+<button class="tri {{ t.cls }}" style="position: absolute; {{ t.style }}" aria-label="{{ t.aria }}" onClick="{{ t.onClick }}">
+<div class="tl" style="position: absolute; {{ t.labStyle }}">
+<div class="eyebrow">{{ t.eyebrow }}</div>
+<div class="ttl">{{ t.title }}</div>
+<div class="cnt">{{ t.count }}</div>
+</div>
+</button>
+</sc-for>
+
+<sc-for list="{{ strips }}" as="s" hint-placeholder-count="20">
+<div class="strip {{ s.cls }}" style="position: absolute; {{ s.style }}">
+<sc-if value="{{ s.viewing }}" hint-placeholder-val="{{ true }}">
+<button class="lab" style="position: absolute; {{ s.labStyle }}" onClick="{{ s.onOpen }}" aria-label="{{ s.openAria }}" title="{{ s.tip }}">
+<span class="badge">{{ s.code }}</span>
+<span class="txt {{ s.txtCls }}">{{ s.shown }}</span>
+</button>
+</sc-if>
+<sc-if value="{{ s.editing }}" hint-placeholder-val="{{ false }}">
+<div class="lab" style="position: absolute; {{ s.labStyle }}" title="{{ s.tip }}">
+<span class="badge">{{ s.code }}</span>
+<input class="inp" type="text" value="{{ s.text }}" placeholder="{{ s.ph }}" aria-label="{{ s.aria }}" onChange="{{ s.onText }}">
+<sc-if value="{{ s.canDelete }}" hint-placeholder-val="{{ true }}">
+<button class="del" aria-label="{{ s.delAria }}" title="Remove" onClick="{{ s.onDelete }}">
+<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg>
+</button>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</sc-for>
+
+<sc-for list="{{ adds }}" as="a" hint-placeholder-count="0">
+<button class="add" style="position: absolute; padding: 0; margin: 0; cursor: pointer; {{ a.style }}" onClick="{{ a.onAdd }}" aria-label="{{ a.label }}">
+<span class="lab" style="position: absolute; {{ a.labStyle }}">
+<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M7 2.5v9M2.5 7h9"></path></svg>
+<span>{{ a.label }}</span>
+</span>
+</button>
+</sc-for>
+
+<sc-for list="{{ cells }}" as="c" hint-placeholder-count="40">
+<button class="cell {{ c.cls }}" style="position: absolute; {{ c.style }}" aria-label="{{ c.aria }}" title="{{ c.aria }}" onClick="{{ c.onClick }}" onMouseEnter="{{ c.onEnter }}" onMouseLeave="{{ c.onLeave }}">
+<span class="dot {{ c.dotCls }}"></span>
+</button>
+</sc-for>
+
+<button class="otag" style="position: absolute; {{ ownersTag.style }}" aria-label="Edit {{ ownersTag.label }}" onClick="{{ ownersTag.onClick }}">
+<span class="lab" style="position: absolute; {{ ownersTag.labStyle }}"><span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ ownersTag.label }}</span></span>
+</button>
+
+<button class="hub" style="position: absolute; left: -17px; top: -17px; width: 34px; height: 34px" aria-label="Show full matrix" title="Show full matrix" onClick="{{ showAll }}">
+<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2.5 2.5l9 9M11.5 2.5l-9 9"></path></svg>
+</button>
+</div>
+
+<header style="position: absolute; left: 0; right: 0; top: 0; min-height: 68px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 12px 20px; background-color: rgba(255,255,255,0.94); border-bottom: 1px solid #E2E5EA">
+<div style="display: flex; align-items: center; gap: 10px; flex: 1 1 260px; min-width: 0">
+<div style="width: 34px; height: 34px; flex: 0 0 auto; border-radius: 9px; background-color: #16181D; color: #fff; display: grid; place-items: center">
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="1.5"></rect><path d="M2.5 2.5l13 13M15.5 2.5l-13 13"></path></svg>
+</div>
+<label for="xm-title" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Matrix title</label>
+<input id="xm-title" class="title-inp" type="text" value="{{ title }}" onChange="{{ onTitle }}">
+</div>
+<nav aria-label="Matrix sections" style="display: flex; gap: 2px; padding: 3px; background-color: #ECEEF1; border-radius: 11px; overflow-x: auto; max-width: 100%">
+<sc-for list="{{ navItems }}" as="n" hint-placeholder-count="6">
+<button class="chip {{ n.cls }}" onClick="{{ n.go }}" title="{{ n.label }}"><span style="width: 8px; height: 8px; flex: 0 0 auto; border-radius: 2px; background-color: {{ n.color }}"></span><span style="max-width: 160px; overflow: hidden; text-overflow: ellipsis">{{ n.label }}</span></button>
+</sc-for>
+</nav>
+<div style="display: flex; gap: 2px">
+<button class="icon-btn" style="width: 40px; height: 40px" aria-label="Undo" title="Undo" disabled="{{ undoDisabled }}" onClick="{{ onUndo }}">
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4L3 7.5 6.5 11"></path><path d="M3 7.5h7.5a4.5 4.5 0 010 9H8"></path></svg>
+</button>
+<button class="icon-btn" style="width: 40px; height: 40px" aria-label="Redo" title="Redo" disabled="{{ redoDisabled }}" onClick="{{ onRedo }}">
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 4L15 7.5 11.5 11"></path><path d="M15 7.5H7.5a4.5 4.5 0 000 9H10"></path></svg>
+</button>
+</div>
+<button class="btn sm {{ mdBtnCls }}" aria-pressed="{{ panelOpenStr }}" onClick="{{ togglePanel }}">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="3" width="13" height="10" rx="1.5"></rect><path d="M4 10.5V5.5l2 2.5 2-2.5v5M11 5.5v5M9.5 9l1.5 1.5L12.5 9"></path></svg>
+Markdown
+</button>
+</header>
+
+<footer style="position: absolute; left: 16px; right: 16px; bottom: 16px; min-height: 68px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 12px 14px 12px 20px; background-color: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 14px; box-shadow: 0 8px 24px rgba(16,24,40,0.08)">
+<sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
+<div style="flex: 1 1 320px; min-width: 0">
+<div style="font-size: 14px; font-weight: 600; color: #16181D">Full matrix</div>
+<div style="font-size: 13px; color: #555C68; margin-top: 3px">Click a quadrant of the X to rotate into it and edit its rows. Click any grid cell to mark how two items relate.</div>
+</div>
+</sc-if>
+<sc-if value="{{ isFocus }}" hint-placeholder-val="{{ false }}">
+<button class="btn" onClick="{{ showAll }}">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6V2.5H6M13.5 6V2.5H10M2.5 10v3.5H6M13.5 10v3.5H10"></path></svg>
+Full matrix
+</button>
+<div style="flex: 1 1 280px; min-width: 0">
+<div style="font: 600 10px/1.2 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; {{ cap.style }}">{{ cap.eyebrow }}</div>
+<div style="font-size: 15px; font-weight: 650; color: #16181D; margin-top: 3px">{{ cap.title }}</div>
+<div style="font-size: 13px; color: #555C68; margin-top: 2px">{{ cap.hint }}</div>
+</div>
+</sc-if>
+<div style="display: flex; align-items: center; gap: 16px; font-size: 12.5px; color: #3A404A; flex-wrap: wrap">
+<span><span class="lg-dot" style="background-color: #16181D"></span> Strong · Leads</span>
+<span><span class="lg-dot" style="border: 2px solid #16181D"></span> Supporting · Supports</span>
+</div>
+<sc-if value="{{ isFocus }}" hint-placeholder-val="{{ false }}">
+<button class="btn pri" onClick="{{ cap.next }}">
+Next: {{ cap.nextLabel }}
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"></path></svg>
+</button>
+</sc-if>
+</footer>
+</div>
+
+<sc-if value="{{ panelOpen }}" hint-placeholder-val="{{ true }}">
+<aside aria-label="Markdown source" style="position: absolute; top: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; background-color: #FFFFFF; border-left: 1px solid #E2E5EA; box-shadow: -8px 0 24px rgba(16,24,40,0.05); {{ panelStyle }}">
+<div style="display: flex; align-items: center; gap: 10px; padding: 14px 12px 12px 18px; border-bottom: 1px solid #E2E5EA; flex-wrap: wrap">
+<div style="flex: 1 1 auto; min-width: 0">
+<div style="font-size: 14px; font-weight: 650; color: #16181D">Markdown</div>
+<div style="font-size: 12px; color: #555C68; margin-top: 2px">The matrix is drawn from this text. Edit either side.</div>
+</div>
+<sc-if value="{{ mdOk }}" hint-placeholder-val="{{ true }}">
+<span class="pill ok"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6.2l2.3 2.3 4.7-5"></path></svg>In sync</span>
+</sc-if>
+<sc-if value="{{ mdBad }}" hint-placeholder-val="{{ false }}">
+<span class="pill err">Not applied</span>
+</sc-if>
+<button class="btn sm" onClick="{{ onCopy }}">{{ copyLabel }}</button>
+<button class="icon-btn" aria-label="Close markdown panel" onClick="{{ togglePanel }}">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+</button>
+</div>
+<sc-if value="{{ mdBad }}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="padding: 10px 18px; background-color: #FDECEC; color: #7A1610; font-size: 12.5px; line-height: 1.45; border-bottom: 1px solid #F6C9C5">
+<strong>Line {{ errLine }}:</strong> {{ errMessage }}<br>
+<span style="color: #8A2A22">The matrix shows the last valid version until this is fixed.</span>
+</div>
+</sc-if>
+<label for="xm-md" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Matrix markdown</label>
+<textarea id="xm-md" class="md" spellcheck="false" value="{{ md }}" onChange="{{ onMd }}"></textarea>
+<div style="padding: 12px 18px 14px; border-top: 1px solid #E2E5EA; font-size: 12px; line-height: 1.9; color: #3A404A">
+<div><code class="k"># Title</code>, then <code class="k">## </code> sections read by position, any wording, optional <code class="k">: label</code> after the title: 1 breakthrough (bottom) · 2 annual (left) · 3 priorities (top) · 4 targets (right) · 5 owners · 6 intersections</div>
+<div>Items: <code class="k">- slug: Title</code> · Links: <code class="k">- from -&gt; to: strong | supporting</code> (owners: <code class="k">leads | supports</code>)</div>
+</div>
+</aside>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"duration":{"editor":"range","default":900,"min":200,"max":2000,"step":50,"unit":"ms"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const parsed = Component.parseMd(Component.seedMd());
+    if (!parsed.ok) throw new Error('bug: this should never happen — seed markdown invalid at line ' + parsed.error.line + ': ' + parsed.error.message);
+    this.state = {
+      model: parsed.model,
+      md: Component.serializeMd(parsed.model),
+      error: null,
+      history: Component.emptyHistory(),
+      focus: null,
+      rot: 0,
+      hover: null,
+      panelOpen: true,
+      copied: false,
+      vw: 1440,
+      vh: 900
+    };
+    this.ro = null;
+    this.copyTimer = null;
+    this.setVp = (el) => {
+      if (this.ro) { this.ro.disconnect(); this.ro = null; }
+      if (!el) return;
+      const measure = () => {
+        const r = el.getBoundingClientRect();
+        const vw = Math.round(r.width);
+        const vh = Math.round(r.height);
+        if (vw > 0 && vh > 0 && (vw !== this.state.vw || vh !== this.state.vh)) this.setState({ vw: vw, vh: vh });
+      };
+      measure();
+      this.ro = new ResizeObserver(measure);
+      this.ro.observe(el);
+    };
+  }
+
+  // ?src=<url> loads the markdown from elsewhere (absolute, or relative to
+  // this page). The source must allow CORS; GitHub Pages and raw.githubusercontent do.
+  componentDidMount() {
+    const src = new URLSearchParams(location.search).get('src');
+    if (!src) return;
+    fetch(new URL(src, location.href))
+      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then((text) => {
+        const r = Component.parseMd(text);
+        this.setState(r.ok
+          ? { md: text, model: r.model, error: null, history: Component.emptyHistory() }
+          : { md: text, error: r.error, history: Component.emptyHistory() });
+      })
+      .catch((e) => this.setState({ error: { line: 1, message: 'Could not load ' + src + ' (' + e.message + '). Showing the built-in example.' } }));
+  }
+
+  componentWillUnmount() {
+    if (this.ro) this.ro.disconnect();
+    if (this.copyTimer) clearTimeout(this.copyTimer);
+  }
+
+  // =====================================================================
+  // Static, pure configuration
+  // =====================================================================
+
+  static get MAX() { return 8; }
+  static get PANEL_W() { return 440; }
+
+  static meta() {
+    return {
+      strategic: { code: 'S', cls: 'h', angle: 0, heading: 'Breakthrough objectives', eyebrow: '3–5 year', title: 'Breakthrough objectives', nav: 'Breakthrough', noun: 'objective', plural: 'objectives', hint: 'The few long-range shifts that define success. Aim for 3–5.', ac: '#3346D3', tint: '#ECEEFC', tint2: '#DCE0FA' },
+      annual: { code: 'A', cls: 'v', angle: -90, heading: 'Annual objectives', eyebrow: 'This year', title: 'Annual objectives', nav: 'Annual', noun: 'objective', plural: 'objectives', hint: 'What must be achieved this year to move each breakthrough forward.', ac: '#0A6E64', tint: '#E3F3F1', tint2: '#CBE9E4' },
+      priorities: { code: 'P', cls: 'h', angle: 180, heading: 'Priorities', eyebrow: 'Improvement', title: 'Top-level priorities', nav: 'Priorities', noun: 'priority', plural: 'priorities', hint: 'The initiatives and projects that will deliver this year’s objectives.', ac: '#A84C09', tint: '#FCEEE3', tint2: '#F8DCC6' },
+      targets: { code: 'T', cls: 'v', angle: 90, heading: 'Targets', eyebrow: 'Metrics', title: 'Targets to improve', nav: 'Targets', noun: 'target', plural: 'targets', hint: 'Measurable results that show each priority is working.', ac: '#7436C2', tint: '#F2ECFB', tint2: '#E4D7F7' },
+      owners: { code: 'O', cls: 'v', angle: 90, heading: 'Owners', eyebrow: 'Resources', title: 'Owners', nav: 'Owners', noun: 'owner', plural: 'owners', hint: 'Who leads (●) and who supports (○) each priority.', ac: '#3F4A5A', tint: '#EEF0F3', tint2: '#DEE2E8' }
+    };
+  }
+
+  static order() { return ['strategic', 'annual', 'priorities', 'targets', 'owners']; }
+  static required() { return ['strategic', 'annual', 'priorities', 'targets']; }
+
+  // '## ' headings are identified by POSITION, never by their wording:
+  //   1st = breakthrough objectives (bottom), 2nd = annual objectives (left),
+  //   3rd = priorities (top), 4th = targets (right), 5th = owners, 6th = intersections.
+  // The heading text is kept verbatim and is what the matrix displays.
+  static headingSlots() { return ['strategic', 'annual', 'priorities', 'targets', 'owners', 'intersections']; }
+
+  // Role names used only in error messages, so they still make sense when the
+  // user has renamed every heading.
+  static roleName(key) {
+    const r = { strategic: '1st (breakthrough objectives)', annual: '2nd (annual objectives)', priorities: '3rd (priorities)', targets: '4th (targets)', owners: '5th (owners)', intersections: '6th (intersections)' }[key];
+    if (!r) throw new Error('bug: this should never happen — no role for ' + key);
+    return r;
+  }
+
+  // Heading text used when an optional section (owners, intersections) is
+  // absent from the markdown, so serialising can still write it.
+  // Small per-section labels ("3–5 year", "This year"…). Empty = none shown.
+  static defaultLabels() {
+    return { strategic: '', annual: '', priorities: '', targets: '', owners: '', intersections: '' };
+  }
+
+  static headingLine(model, key) {
+    const label = model.labels[key];
+    if (typeof label !== 'string') throw new Error('bug: this should never happen — no label for ' + key);
+    return '## ' + model.headings[key] + (label === '' ? '' : ': ' + label);
+  }
+
+  static defaultHeadings() {
+    return { strategic: 'Breakthrough objectives', annual: 'Annual objectives', priorities: 'Priorities', targets: 'Targets', owners: 'Owners', intersections: 'Intersections' };
+  }
+
+  // The five grids of the X-matrix. `col` is the section drawn as columns,
+  // `row` the one drawn as rows; `from` says which side is written first in
+  // the markdown arrow (`- from -> to: value`) when serialising. Parsing
+  // accepts either direction.
+  static pairs() {
+    return [
+      { key: 'annual|strategic', col: 'annual', row: 'strategic', from: 'col', owner: false },
+      { key: 'annual|priorities', col: 'annual', row: 'priorities', from: 'row', owner: false },
+      { key: 'targets|priorities', col: 'targets', row: 'priorities', from: 'col', owner: false },
+      { key: 'targets|strategic', col: 'targets', row: 'strategic', from: 'col', owner: false },
+      { key: 'owners|priorities', col: 'owners', row: 'priorities', from: 'col', owner: true }
+    ];
+  }
+
+  static linkKey(pair, colId, rowId) { return pair + '::' + colId + '::' + rowId; }
+
+  static markWord(pair, v) {
+    if (v === 1) return pair.owner ? 'leads' : 'strong';
+    if (v === 2) return pair.owner ? 'supports' : 'supporting';
+    throw new Error('bug: this should never happen — unknown mark value ' + v);
+  }
+
+  static seedMd() {
+    return [
+      '# Northwind Outdoor Co. · Hoshin 2027',
+      '',
+      '## Breakthrough objectives: 3–5 year',
+      '- recurring-revenue: Grow recurring revenue to 40% of sales',
+      '- carbon-neutral: Carbon-neutral across all operations',
+      '- top-satisfaction: #1 in customer satisfaction in our category',
+      '',
+      '## Annual objectives: This year',
+      '- repair-sub: Launch repair subscription in 3 regions',
+      '- energy-cut: Cut warehouse energy use by 20%',
+      '- nps-55: Raise NPS from 42 to 55',
+      '- ship-24h: Reduce order-to-ship time to 24h',
+      '',
+      '## Top-level priorities: Improvement',
+      '- billing: Build subscription billing platform',
+      '- solar-led: Solar + LED retrofit at main DC',
+      '- returns-journey: Redesign returns & repair journey',
+      '- pick-pack: Automate pick-and-pack line',
+      '- feedback-loop: Customer feedback loop in every team',
+      '',
+      '## Targets to improve: Metrics',
+      '- subscribers: 5,000 active subscribers',
+      '- energy-saved: 1.2 GWh energy saved per year',
+      '- nps: NPS ≥ 55',
+      '- on-time: 98% of orders shipped < 24h',
+      '',
+      '## Owners: Resources',
+      '- priya: Priya Shah',
+      '- tom: Tom Okafor',
+      '- lena: Lena Fischer',
+      '- marco: Marco Ruiz',
+      '',
+      '## Intersections',
+      '- repair-sub -> recurring-revenue: strong',
+      '- repair-sub -> top-satisfaction: supporting',
+      '- energy-cut -> carbon-neutral: strong',
+      '- nps-55 -> top-satisfaction: strong',
+      '- ship-24h -> recurring-revenue: supporting',
+      '- ship-24h -> top-satisfaction: supporting',
+      '- billing -> repair-sub: strong',
+      '- solar-led -> energy-cut: strong',
+      '- returns-journey -> repair-sub: supporting',
+      '- returns-journey -> nps-55: strong',
+      '- pick-pack -> energy-cut: supporting',
+      '- pick-pack -> ship-24h: strong',
+      '- feedback-loop -> nps-55: strong',
+      '- subscribers -> billing: strong',
+      '- subscribers -> returns-journey: supporting',
+      '- energy-saved -> solar-led: strong',
+      '- energy-saved -> pick-pack: supporting',
+      '- nps -> returns-journey: strong',
+      '- nps -> feedback-loop: strong',
+      '- on-time -> pick-pack: strong',
+      '- subscribers -> recurring-revenue: strong',
+      '- energy-saved -> carbon-neutral: strong',
+      '- nps -> top-satisfaction: strong',
+      '- on-time -> top-satisfaction: supporting',
+      '- priya -> billing: leads',
+      '- priya -> feedback-loop: supports',
+      '- tom -> solar-led: leads',
+      '- tom -> pick-pack: leads',
+      '- lena -> billing: supports',
+      '- lena -> returns-journey: leads',
+      '- marco -> returns-journey: supports',
+      '- marco -> feedback-loop: leads',
+      ''
+    ].join('\n');
+  }
+
+  // =====================================================================
+  // Markdown ⇄ model (pure). Model shape:
+  //   { title: string,
+  //     sections: { strategic|annual|priorities|targets|owners: [{ id: slug, text }] },
+  //     links: { [linkKey(pair, colId, rowId)]: 1 (strong/leads) | 2 (supporting/supports) } }
+  // =====================================================================
+
+  static parseFail(line, message) {
+    const e = new Error(message);
+    e.xmParse = true;
+    e.xmLine = line;
+    throw e;
+  }
+
+  // Returns { ok: true, model } or { ok: false, error: { line, message } }.
+  // Only markdown problems become `ok: false`; any other exception is a bug
+  // and is rethrown.
+  static parseMd(md) {
+    try {
+      return { ok: true, model: Component.parseMdStrict(md) };
+    } catch (e) {
+      if (e && e.xmParse === true) return { ok: false, error: { line: e.xmLine, message: e.message } };
+      throw e;
+    }
+  }
+
+  static parseMdStrict(md) {
+    const fail = Component.parseFail;
+    const slots = Component.headingSlots();
+    const meta = Component.meta();
+    const SLUG = '[a-z0-9][a-z0-9-]*';
+    const itemRe = new RegExp('^(' + SLUG + ')\\s*:\\s*(.*)$');
+    const linkRe = new RegExp('^(' + SLUG + ')\\s*->\\s*(' + SLUG + ')\\s*:\\s*([A-Za-z]+)\\s*$');
+    const lines = md.split('\n');
+
+    const acc = lines.reduce((st, raw, idx) => {
+      const ln = idx + 1;
+      const line = raw.replace(/\s+$/, '');
+      const t = line.trim();
+      if (t === '') return st;
+      const h1 = /^#\s+(.+)$/.exec(t);
+      if (h1) {
+        if (st.title !== null) fail(ln, 'Only one "# Title" line is allowed.');
+        if (st.current !== null) fail(ln, 'The "# Title" line must come before any "## " section.');
+        return Object.assign({}, st, { title: h1[1].trim(), titleLine: ln });
+      }
+      const h2 = /^##\s+(.+)$/.exec(t);
+      if (h2) {
+        if (st.seen.length >= slots.length) fail(ln, 'Too many "## " sections. The matrix uses at most ' + slots.length + ', in this order: breakthrough objectives, annual objectives, priorities, targets, owners, intersections.');
+        const key = slots[st.seen.length];
+        // "## Title: label" — everything after the FIRST colon is the small
+        // label (e.g. a time horizon); no colon means no label.
+        const raw = h2[1].trim();
+        const colon = raw.indexOf(':');
+        const htitle = (colon < 0 ? raw : raw.slice(0, colon)).trim();
+        const hlabel = colon < 0 ? '' : raw.slice(colon + 1).trim();
+        if (htitle === '') fail(ln, 'This heading has a label but no title. Write it as "## Title: label".');
+        return Object.assign({}, st, {
+          current: key,
+          seen: st.seen.concat([key]),
+          headings: Object.assign({}, st.headings, { [key]: htitle }),
+          labels: Object.assign({}, st.labels, { [key]: hlabel })
+        });
+      }
+      const li = /^[-*]\s+(.*)$/.exec(t);
+      if (li) {
+        if (st.current === null) fail(ln, 'List item before any "## " section heading.');
+        const body = li[1];
+        if (st.current === 'intersections') {
+          const m = linkRe.exec(body);
+          if (!m) fail(ln, 'Intersections must look like "- from-slug -> to-slug: strong" (or supporting / leads / supports).');
+          return Object.assign({}, st, { pending: st.pending.concat([{ ln: ln, a: m[1], b: m[2], word: m[3].toLowerCase() }]) });
+        }
+        const m = itemRe.exec(body);
+        if (!m) fail(ln, 'Items must look like "- slug: Title". Slugs use lowercase letters, digits and hyphens.');
+        if (st.where[m[1]]) fail(ln, 'Slug "' + m[1] + '" is already used on line ' + st.where[m[1]].ln + '. Slugs must be unique across the whole matrix.');
+        if (st.sections[st.current].length >= Component.MAX) fail(ln, '"' + st.headings[st.current] + '" can hold at most ' + Component.MAX + ' items.');
+        const item = { id: m[1], text: m[2].trim() };
+        return Object.assign({}, st, {
+          sections: Object.assign({}, st.sections, { [st.current]: st.sections[st.current].concat([item]) }),
+          where: Object.assign({}, st.where, { [m[1]]: { sec: st.current, ln: ln } })
+        });
+      }
+      return fail(ln, 'Unrecognised line. Expected "# Title", a "## Section" heading, or a "- " list item.');
+    }, { title: null, titleLine: 0, current: null, seen: [], headings: {}, labels: {}, sections: { strategic: [], annual: [], priorities: [], targets: [], owners: [] }, where: {}, pending: [] });
+
+    if (acc.title === null) fail(1, 'The markdown must start with a "# Title" line.');
+    if (acc.title === '') fail(acc.titleLine, 'The title is empty.');
+    Component.required().forEach((k) => {
+      if (acc.seen.indexOf(k) < 0) fail(lines.length, 'Missing the ' + Component.roleName(k) + ' "## " section. The first four "## " headings are required; their wording is up to you.');
+    });
+
+    const pairs = Component.pairs();
+    const links = acc.pending.reduce((out, p) => {
+      const wa = acc.where[p.a];
+      const wb = acc.where[p.b];
+      if (!wa) fail(p.ln, 'Unknown slug "' + p.a + '".');
+      if (!wb) fail(p.ln, 'Unknown slug "' + p.b + '".');
+      const pair = pairs.find((q) => (q.col === wa.sec && q.row === wb.sec) || (q.col === wb.sec && q.row === wa.sec));
+      if (!pair) fail(p.ln, '"' + p.a + '" (' + acc.headings[wa.sec] + ') and "' + p.b + '" (' + acc.headings[wb.sec] + ') are not adjacent in the X-matrix, so they cannot be linked.');
+      const colId = wa.sec === pair.col ? p.a : p.b;
+      const rowId = wa.sec === pair.col ? p.b : p.a;
+      const allowed = pair.owner ? { leads: 1, supports: 2 } : { strong: 1, supporting: 2 };
+      const v = allowed[p.word];
+      if (!v) fail(p.ln, 'Unknown value "' + p.word + '". Use ' + Object.keys(allowed).join(' or ') + ' here.');
+      const k = Component.linkKey(pair.key, colId, rowId);
+      if (out[k]) fail(p.ln, 'This intersection is already set earlier.');
+      return Object.assign({}, out, { [k]: v });
+    }, {});
+
+    return {
+      title: acc.title,
+      headings: Object.assign({}, Component.defaultHeadings(), acc.headings),
+      labels: Object.assign({}, Component.defaultLabels(), acc.labels),
+      sections: acc.sections,
+      links: links
+    };
+  }
+
+  static serializeMd(model) {
+    const meta = Component.meta();
+    const item = (it) => ('- ' + it.id + ': ' + it.text).replace(/\s+$/, '');
+    const blocks = Component.order().map((k) => [Component.headingLine(model, k)].concat(model.sections[k].map(item)).join('\n'));
+    const linkLines = Component.pairs().reduce((out, p) => {
+      const fromSec = p.from === 'col' ? p.col : p.row;
+      const toSec = p.from === 'col' ? p.row : p.col;
+      return out.concat(model.sections[fromSec].reduce((acc, f) => acc.concat(model.sections[toSec].reduce((acc2, t) => {
+        const colId = p.from === 'col' ? f.id : t.id;
+        const rowId = p.from === 'col' ? t.id : f.id;
+        const v = model.links[Component.linkKey(p.key, colId, rowId)];
+        return v ? acc2.concat(['- ' + f.id + ' -> ' + t.id + ': ' + Component.markWord(p, v)]) : acc2;
+      }, [])), []));
+    }, []);
+    return ['# ' + model.title, ''].concat([blocks.join('\n\n'), '', [Component.headingLine(model, 'intersections')].concat(linkLines).join('\n'), '']).join('\n');
+  }
+
+  // =====================================================================
+  // Pure model transforms (every UI edit goes through one of these)
+  // =====================================================================
+
+  static mapSection(model, sec, fn) {
+    if (!Object.prototype.hasOwnProperty.call(model.sections, sec)) throw new Error('bug: this should never happen — unknown section ' + sec);
+    return Object.assign({}, model, { sections: Object.assign({}, model.sections, { [sec]: fn(model.sections[sec]) }) });
+  }
+
+  static uniqueSlug(model, base) {
+    const used = Component.order().reduce((acc, k) => acc.concat(model.sections[k].map((it) => it.id)), []);
+    const pick = (n) => {
+      const s = n === 1 ? base : base + '-' + n;
+      return used.indexOf(s) < 0 ? s : pick(n + 1);
+    };
+    return pick(1);
+  }
+
+  static withText(model, sec, id, text) {
+    return Component.mapSection(model, sec, (items) => items.map((it) => (it.id === id ? Object.assign({}, it, { text: text }) : it)));
+  }
+
+  static withAdded(model, sec) {
+    if (model.sections[sec].length >= Component.MAX) throw new Error('bug: this should never happen — add beyond MAX in ' + sec);
+    const id = Component.uniqueSlug(model, 'new-' + Component.meta()[sec].noun);
+    return Component.mapSection(model, sec, (items) => items.concat([{ id: id, text: '' }]));
+  }
+
+  static withRemoved(model, sec, id) {
+    if (model.sections[sec].length <= 1) throw new Error('bug: this should never happen — removing last item in ' + sec);
+    const links = Object.keys(model.links).reduce((acc, k) => {
+      const parts = k.split('::');
+      return parts[1] === id || parts[2] === id ? acc : Object.assign(acc, { [k]: model.links[k] });
+    }, {});
+    return Object.assign({}, Component.mapSection(model, sec, (items) => items.filter((it) => it.id !== id)), { links: links });
+  }
+
+  static withToggled(model, pairKey, colId, rowId) {
+    const k = Component.linkKey(pairKey, colId, rowId);
+    const cur = model.links[k] || 0;
+    const next = cur === 0 ? 1 : cur === 1 ? 2 : cur === 2 ? 0 : (() => { throw new Error('bug: this should never happen — unknown mark value ' + cur); })();
+    const links = Object.assign({}, model.links);
+    if (next === 0) delete links[k]; else links[k] = next;
+    return Object.assign({}, model, { links: links });
+  }
+
+  // ---------- undo / redo (pure) ----------
+  // History holds whole snapshots of the document state { model, md, error }.
+  // View state (focus, rotation, panel) is deliberately not part of it.
+
+  static get HISTORY_LIMIT() { return 200; }
+  static get COALESCE_MS() { return 1000; }
+
+  static emptyHistory() { return { past: [], future: [], lastTag: null, lastAt: 0 }; }
+
+  static snapshot(s) { return { model: s.model, md: s.md, error: s.error }; }
+
+  static commit(h, before, tag, now) {
+    const coalesce = tag !== null && tag === h.lastTag && now - h.lastAt < Component.COALESCE_MS && h.past.length > 0;
+    return {
+      past: coalesce ? h.past : h.past.concat([before]).slice(-Component.HISTORY_LIMIT),
+      future: [],
+      lastTag: tag,
+      lastAt: now
+    };
+  }
+
+  static stepBack(h, current) {
+    if (h.past.length === 0) throw new Error('bug: this should never happen — undo with empty history');
+    return {
+      snapshot: h.past[h.past.length - 1],
+      history: { past: h.past.slice(0, -1), future: [current].concat(h.future), lastTag: null, lastAt: 0 }
+    };
+  }
+
+  static stepForward(h, current) {
+    if (h.future.length === 0) throw new Error('bug: this should never happen — redo with empty future');
+    return {
+      snapshot: h.future[0],
+      history: { past: h.past.concat([current]), future: h.future.slice(1), lastTag: null, lastAt: 0 }
+    };
+  }
+
+  static nearest(target, current) {
+    return target + 360 * Math.round((current - target) / 360);
+  }
+
+  // Fixed label rotations: baseline toward the outer edge of the matrix, so
+  // whichever section is rotated to the bottom reads upright. Labels never
+  // turn on their own; they turn only with the chart.
+  static labelGroups() {
+    return {
+      strategic: { cls: 'h', base: 0 },
+      annual: { cls: 'v', base: 90 },
+      priorities: { cls: 'h', base: 180 },
+      targets: { cls: 'v', base: -90 },
+      owners: { cls: 'v', base: -90 },
+      ownersTag: { cls: 'h', base: 0 }
+    };
+  }
+
+  static layout(sections, focus) {
+    const C = 360;
+    const T = 44;
+    const G = 14;
+    const meta = Component.meta();
+    const n = {};
+    const slots = {};
+    Component.order().forEach((k) => {
+      n[k] = sections[k].length;
+      slots[k] = n[k] + (focus === k && n[k] < Component.MAX ? 1 : 0);
+    });
+    const ownersX0 = C / 2 + slots.targets * T + G;
+    const ownersEnd = ownersX0 + slots.owners * T;
+    const rowY = (sec, i) => {
+      if (sec === 'strategic') return C / 2 + i * T;
+      if (sec === 'priorities') return -C / 2 - (i + 1) * T;
+      throw new Error('bug: this should never happen — rowY for ' + sec);
+    };
+    const colX = (sec, i) => {
+      if (sec === 'annual') return -C / 2 - (i + 1) * T;
+      if (sec === 'targets') return C / 2 + i * T;
+      if (sec === 'owners') return ownersX0 + i * T;
+      throw new Error('bug: this should never happen — colX for ' + sec);
+    };
+    const rect = (sec, i) => meta[sec].cls === 'h'
+      ? { x: -C / 2, y: rowY(sec, i), w: C, h: T }
+      : { x: colX(sec, i), y: -C / 2, w: T, h: C };
+    const full = {
+      x0: -C / 2 - slots.annual * T,
+      x1: ownersEnd,
+      y0: -C / 2 - slots.priorities * T,
+      y1: Math.max(C / 2 + slots.strategic * T, C / 2 + 40)
+    };
+    const boxes = {
+      strategic: { x0: -C / 2 - n.annual * T, x1: C / 2 + n.targets * T, y0: 0, y1: C / 2 + slots.strategic * T },
+      annual: { x0: -C / 2 - slots.annual * T, x1: 0, y0: -C / 2 - n.priorities * T, y1: C / 2 + n.strategic * T },
+      priorities: { x0: -C / 2 - n.annual * T, x1: ownersEnd, y0: -C / 2 - slots.priorities * T, y1: 0 },
+      targets: { x0: 0, x1: C / 2 + slots.targets * T, y0: -C / 2 - n.priorities * T, y1: C / 2 + n.strategic * T },
+      owners: { x0: C / 2, x1: ownersEnd, y0: -C / 2 - n.priorities * T, y1: C / 2 + 40 }
+    };
+    return { C: C, T: T, n: n, ownersX0: ownersX0, rowY: rowY, colX: colX, rect: rect, full: full, boxes: boxes };
+  }
+
+  // =====================================================================
+  // State transitions (the edge: the only place state changes)
+  // =====================================================================
+
+  // UI edits: transform the model, then regenerate the markdown from it.
+  // `tag` groups rapid edits of the same kind (typing in one row, typing in
+  // the markdown) into a single undo step; null = always its own step.
+  applyModel(fn, tag) {
+    const now = Date.now();
+    this.setState((s) => {
+      if (s.error) throw new Error('bug: this should never happen — matrix edited while markdown has an error');
+      const model = fn(s.model);
+      return { model: model, md: Component.serializeMd(model), history: Component.commit(s.history, Component.snapshot(s), tag, now) };
+    });
+  }
+
+  // Markdown edits: keep the text as typed; adopt the model only if it parses.
+  onMdChange(text) {
+    const now = Date.now();
+    const r = Component.parseMd(text);
+    this.setState((s) => Object.assign(
+      r.ok ? { md: text, model: r.model, error: null, hover: null } : { md: text, error: r.error },
+      { history: Component.commit(s.history, Component.snapshot(s), 'md', now) }
+    ));
+  }
+
+  undo() {
+    this.setState((s) => {
+      const r = Component.stepBack(s.history, Component.snapshot(s));
+      return Object.assign({}, r.snapshot, { history: r.history, hover: null });
+    });
+  }
+
+  redo() {
+    this.setState((s) => {
+      const r = Component.stepForward(s.history, Component.snapshot(s));
+      return Object.assign({}, r.snapshot, { history: r.history, hover: null });
+    });
+  }
+
+  focusOn(sec) {
+    const m = Component.meta()[sec];
+    if (!m) throw new Error('bug: this should never happen — unknown section ' + sec);
+    this.setState((s) => ({ focus: sec, rot: Component.nearest(m.angle, s.rot), hover: null }));
+  }
+
+  showAll() {
+    this.setState((s) => ({ focus: null, rot: Component.nearest(0, s.rot), hover: null }));
+  }
+
+  copyMd() {
+    const text = this.state.md;
+    if (!navigator.clipboard) throw new Error('Clipboard is not available in this browser.');
+    navigator.clipboard.writeText(text).then(() => {
+      if (this.copyTimer) clearTimeout(this.copyTimer);
+      this.setState({ copied: true });
+      this.copyTimer = setTimeout(() => this.setState({ copied: false }), 1600);
+    }, () => {
+      if (this.copyTimer) clearTimeout(this.copyTimer);
+      this.setState({ copied: 'failed' });
+      this.copyTimer = setTimeout(() => this.setState({ copied: false }), 2400);
+    });
+  }
+
+  // =====================================================================
+  // View
+  // =====================================================================
+
+  renderVals() {
+    const dur = this.props.duration ?? 900;
+    const EASE = 'cubic-bezier(.65,0,.25,1)';
+    const s = this.state;
+    const model = s.model;
+    const locked = s.error !== null;
+    const meta = Component.meta();
+    const order = Component.order();
+    const L = Component.layout(model.sections, s.focus);
+    const R = s.rot;
+    const TOP = 68;
+    const BOT = 100;
+
+    // Panel takes a column on wide screens and covers the matrix on narrow ones.
+    const wide = s.vw >= 960;
+    const panelW = wide ? Component.PANEL_W : s.vw;
+    const mw = s.panelOpen && wide ? s.vw - panelW : s.vw;
+    const mh = s.vh;
+
+    const box = s.focus ? L.boxes[s.focus] : L.full;
+    const quarter = (((Math.round(R / 90)) % 2) + 2) % 2 === 1;
+    const bw = box.x1 - box.x0;
+    const bh = box.y1 - box.y0;
+    const sw = quarter ? bh : bw;
+    const sh = quarter ? bw : bh;
+    const availW = Math.max(240, mw - 64);
+    const availH = Math.max(240, mh - TOP - BOT - 32);
+    const S = Math.min(availW / sw, availH / sh, s.focus ? 1.8 : 1.4);
+    const cx = mw / 2;
+    const cy = TOP + 16 + availH / 2;
+    const fx = (box.x0 + box.x1) / 2;
+    const fy = (box.y0 + box.y1) / 2;
+    const stageStyle = 'transform: translate(' + cx + 'px, ' + cy + 'px) scale(' + S + ') rotate(' + R + 'deg) translate(' + (-fx) + 'px, ' + (-fy) + 'px); transition: transform ' + dur + 'ms ' + EASE + ';';
+
+    const vars = (sec) => '--ac:' + meta[sec].ac + '; --tint:' + meta[sec].tint + '; --tint2:' + meta[sec].tint2 + ';';
+    const rectCss = (r) => 'left:' + r.x + 'px; top:' + r.y + 'px; width:' + r.w + 'px; height:' + r.h + 'px;';
+    const posTr = 'transition: left ' + dur + 'ms ' + EASE + ', top ' + dur + 'ms ' + EASE + ', opacity 300ms ease;';
+    const lab = (group, long, short) => {
+      const g = Component.labelGroups()[group];
+      if (!g) throw new Error('bug: this should never happen — no label group ' + group);
+      return 'left:50%; top:50%; width:' + long + 'px; height:' + short + 'px; transform: translate(-50%, -50%) rotate(' + g.base + 'deg);';
+    };
+    const hoverIds = s.hover ? [s.hover.colId, s.hover.rowId] : [];
+    const lockStyle = locked ? 'pointer-events:none;' : '';
+
+    const strips = order.reduce((all, sec) => {
+      const m = meta[sec];
+      const editing = s.focus === sec && !locked;
+      const dimmed = s.focus !== null && s.focus !== sec;
+      const canDelete = model.sections[sec].length > 1;
+      return all.concat(model.sections[sec].map((it, i) => {
+        const r = L.rect(sec, i);
+        const code = m.code + (i + 1);
+        const blank = it.text.trim() === '';
+        return {
+          style: vars(sec) + rectCss(r) + posTr + 'opacity:' + (dimmed ? 0.55 : 1) + ';' + lockStyle,
+          cls: (hoverIds.indexOf(it.id) >= 0 ? 'hl' : '') + (editing ? ' editing' : ''),
+          labStyle: m.cls === 'h' ? lab(sec, r.w, r.h) : lab(sec, r.h, r.w),
+          code: code,
+          text: it.text,
+          tip: it.id + (blank ? '' : ': ' + it.text),
+          shown: blank ? 'Untitled ' + m.noun : it.text,
+          txtCls: blank ? 'empty' : '',
+          ph: 'Describe this ' + m.noun + '…',
+          editing: editing,
+          viewing: !editing,
+          canDelete: canDelete,
+          aria: model.headings[sec] + ' ' + code + ' (' + it.id + ')',
+          delAria: 'Remove ' + code + ' (' + it.id + ')',
+          openAria: 'Edit ' + model.headings[sec] + ', ' + code + ': ' + (blank ? 'untitled' : it.text),
+          onText: (e) => { const v = e.target.value; this.applyModel((md) => Component.withText(md, sec, it.id, v), 'text:' + it.id); },
+          onDelete: () => this.applyModel((md) => Component.withRemoved(md, sec, it.id), null),
+          onOpen: () => this.focusOn(sec)
+        };
+      }));
+    }, []);
+
+    const adds = s.focus !== null && !locked && model.sections[s.focus].length < Component.MAX
+      ? [s.focus].map((sec) => {
+          const m = meta[sec];
+          const r = L.rect(sec, model.sections[sec].length);
+          return {
+            style: vars(sec) + rectCss(r),
+            labStyle: 'left:50%; top:50%; width:' + (m.cls === 'h' ? r.w : r.h) + 'px; height:' + (m.cls === 'h' ? r.h : r.w) + 'px; transform: translate(-50%, -50%) rotate(' + (-R) + 'deg);',
+            label: 'Add ' + m.noun,
+            onAdd: () => this.applyModel((md) => Component.withAdded(md, sec), null)
+          };
+        })
+      : [];
+
+    const cells = Component.pairs().reduce((all, p) => {
+      const relevant = s.focus === null || p.col === s.focus || p.row === s.focus;
+      return all.concat(model.sections[p.col].reduce((acc, c, ci) => acc.concat(model.sections[p.row].map((rw, ri) => {
+        const k = Component.linkKey(p.key, c.id, rw.id);
+        const v = model.links[k] || 0;
+        const codeC = meta[p.col].code + (ci + 1);
+        const codeR = meta[p.row].code + (ri + 1);
+        const name = v === 0 ? 'none' : Component.markWord(p, v);
+        const cross = s.hover !== null && (s.hover.colId === c.id || s.hover.rowId === rw.id);
+        return {
+          style: 'left:' + L.colX(p.col, ci) + 'px; top:' + L.rowY(p.row, ri) + 'px; opacity:' + (relevant ? 1 : 0.3) + ';' + posTr + lockStyle,
+          cls: cross ? 'cross' : '',
+          dotCls: 'm' + v,
+          aria: p.owner
+            ? codeC + ' ' + c.text + ' on ' + codeR + ' ' + rw.text + ': ' + name
+            : codeR + ' × ' + codeC + ' (' + rw.text + ' × ' + c.text + '): ' + name,
+          onClick: () => this.applyModel((md) => Component.withToggled(md, p.key, c.id, rw.id), null),
+          onEnter: () => this.setState({ hover: { colId: c.id, rowId: rw.id } }),
+          onLeave: () => this.setState({ hover: null })
+        };
+      })), []));
+    }, []);
+
+    const C = L.C;
+    const triDefs = [
+      { sec: 'strategic', clip: 'polygon(2.8% 100%, 97.2% 100%, 50% 52.8%)', x: C / 2, y: C - 58 },
+      { sec: 'annual', clip: 'polygon(0% 2.8%, 0% 97.2%, 47.2% 50%)', x: 58, y: C / 2 },
+      { sec: 'priorities', clip: 'polygon(2.8% 0%, 97.2% 0%, 50% 47.2%)', x: C / 2, y: 58 },
+      { sec: 'targets', clip: 'polygon(100% 2.8%, 100% 97.2%, 52.8% 50%)', x: C - 58, y: C / 2 }
+    ];
+    const tris = triDefs.map((t) => {
+      const m = meta[t.sec];
+      const on = s.focus === t.sec;
+      const count = model.sections[t.sec].length;
+      return {
+        style: vars(t.sec) + 'left:' + (-C / 2) + 'px; top:' + (-C / 2) + 'px; width:' + C + 'px; height:' + C + 'px; clip-path:' + t.clip + '; opacity:' + (s.focus !== null && !on ? 0.55 : 1) + ';',
+        cls: on ? 'on' : '',
+        labStyle: 'left:' + t.x + 'px; top:' + t.y + 'px; width:170px; height:70px; transform: translate(-50%, -50%) rotate(' + Component.labelGroups()[t.sec].base + 'deg);',
+        eyebrow: model.labels[t.sec],
+        title: model.headings[t.sec],
+        count: count + ' ' + (count === 1 ? m.noun : m.plural),
+        aria: on ? 'Show full matrix' : 'Rotate to ' + model.headings[t.sec],
+        onClick: on ? () => this.showAll() : () => this.focusOn(t.sec)
+      };
+    });
+
+    const oW = model.sections.owners.length * L.T;
+    const ownersTag = {
+      style: vars('owners') + 'left:' + L.ownersX0 + 'px; top:' + (C / 2 + 8) + 'px; width:' + oW + 'px; height:30px;' + posTr + 'opacity:' + (s.focus !== null && s.focus !== 'owners' ? 0.55 : 1) + ';',
+      labStyle: lab('ownersTag', oW, 30),
+      label: model.headings.owners,
+      onClick: () => this.focusOn('owners')
+    };
+
+    const navItems = [{ label: 'Full matrix', cls: s.focus === null ? 'on' : '', color: '#16181D', go: () => this.showAll() }]
+      .concat(order.map((sec) => ({ label: model.headings[sec], cls: s.focus === sec ? 'on' : '', color: meta[sec].ac, go: () => this.focusOn(sec) })));
+
+    const cap = s.focus !== null
+      ? (() => {
+          const m = meta[s.focus];
+          const nx = order[(order.indexOf(s.focus) + 1) % order.length];
+          return { style: 'color:' + m.ac + ';', eyebrow: model.labels[s.focus], title: model.headings[s.focus], hint: m.hint, nextLabel: model.headings[nx], next: () => this.focusOn(nx) };
+        })()
+      : { style: '', eyebrow: '', title: '', hint: '', nextLabel: '', next: () => { throw new Error('bug: this should never happen — next() in overview'); } };
+
+    return {
+      setVp: this.setVp,
+      matrixPaneStyle: 'width:' + mw + 'px;',
+      panelStyle: 'width:' + panelW + 'px;',
+      stageStyle: stageStyle,
+      tris: tris,
+      strips: strips,
+      adds: adds,
+      cells: cells,
+      ownersTag: ownersTag,
+      navItems: navItems,
+      cap: cap,
+      isFocus: s.focus !== null,
+      isOverview: s.focus === null,
+      title: model.title,
+      onTitle: (e) => { const v = e.target.value; if (!locked) this.applyModel((md) => Object.assign({}, md, { title: v }), 'title'); },
+      canUndo: s.history.past.length > 0,
+      undoDisabled: s.history.past.length === 0,
+      redoDisabled: s.history.future.length === 0,
+      onUndo: () => this.undo(),
+      onRedo: () => this.redo(),
+      showAll: () => this.showAll(),
+      panelOpen: s.panelOpen,
+      panelOpenStr: s.panelOpen ? 'true' : 'false',
+      mdBtnCls: s.panelOpen ? 'on' : '',
+      togglePanel: () => this.setState((st) => ({ panelOpen: !st.panelOpen })),
+      md: s.md,
+      onMd: (e) => this.onMdChange(e.target.value),
+      mdOk: !locked,
+      mdBad: locked,
+      errLine: locked ? s.error.line : 0,
+      errMessage: locked ? s.error.message : '',
+      copyLabel: s.copied === true ? 'Copied' : s.copied === 'failed' ? 'Copy failed: select the text instead' : 'Copy',
+      onCopy: () => this.copyMd()
+    };
+  }
+}
+</script>
+</body>
+</html>
