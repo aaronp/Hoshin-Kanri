@@ -152,11 +152,26 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 <label for="xm-title" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Matrix title</label>
 <input id="xm-title" class="title-inp" type="text" value="{{ title }}" onChange="{{ onTitle }}">
 </div>
-<nav aria-label="Matrix sections" style="display: flex; gap: 2px; padding: 3px; background-color: #ECEEF1; border-radius: 11px; overflow-x: auto; max-width: 100%">
+<nav aria-label="Matrix view" style="position: relative" onKeyDown="{{ onMenuKey }}">
+<button class="btn sm" aria-haspopup="true" aria-expanded="{{ viewMenuStr }}" onClick="{{ toggleViewMenu }}">
+<span style="width: 8px; height: 8px; flex: 0 0 auto; border-radius: 2px; background-color: {{ viewColor }}"></span>
+<span style="color: #555C68">View:</span>
+<span style="max-width: 200px; overflow: hidden; text-overflow: ellipsis">{{ viewLabel }}</span>
+<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5l3 3 3-3"></path></svg>
+</button>
+<sc-if value="{{ viewMenu }}" hint-placeholder-val="{{ false }}">
+<div style="position: fixed; inset: 0" onClick="{{ closeViewMenu }}"></div>
+<div style="position: absolute; top: calc(100% + 6px); left: 0; z-index: 1; min-width: 100%; display: flex; flex-direction: column; gap: 2px; padding: 4px; background-color: #FFFFFF; border: 1px solid #DADDE3; border-radius: 10px; box-shadow: 0 8px 24px rgba(16,24,40,0.12)">
 <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="6">
-<button class="chip {{ n.cls }}" onClick="{{ n.go }}" title="{{ n.label }}"><span style="width: 8px; height: 8px; flex: 0 0 auto; border-radius: 2px; background-color: {{ n.color }}"></span><span style="max-width: 160px; overflow: hidden; text-overflow: ellipsis">{{ n.label }}</span></button>
+<button class="chip {{ n.cls }}" onClick="{{ n.go }}" title="{{ n.label }}"><span style="width: 8px; height: 8px; flex: 0 0 auto; border-radius: 2px; background-color: {{ n.color }}"></span><span style="max-width: 240px; overflow: hidden; text-overflow: ellipsis">{{ n.label }}</span></button>
 </sc-for>
+</div>
+</sc-if>
 </nav>
+<button class="btn sm {{ mdBtnCls }}" aria-pressed="{{ panelOpenStr }}" onClick="{{ togglePanel }}">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="3" width="13" height="10" rx="1.5"></rect><path d="M4 10.5V5.5l2 2.5 2-2.5v5M11 5.5v5M9.5 9l1.5 1.5L12.5 9"></path></svg>
+Markdown
+</button>
 <div style="display: flex; gap: 2px">
 <button class="icon-btn" style="width: 40px; height: 40px" aria-label="Undo" title="Undo" disabled="{{ undoDisabled }}" onClick="{{ onUndo }}">
 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 4L3 7.5 6.5 11"></path><path d="M3 7.5h7.5a4.5 4.5 0 010 9H8"></path></svg>
@@ -165,10 +180,6 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 4L15 7.5 11.5 11"></path><path d="M15 7.5H7.5a4.5 4.5 0 000 9H10"></path></svg>
 </button>
 </div>
-<button class="btn sm {{ mdBtnCls }}" aria-pressed="{{ panelOpenStr }}" onClick="{{ togglePanel }}">
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="3" width="13" height="10" rx="1.5"></rect><path d="M4 10.5V5.5l2 2.5 2-2.5v5M11 5.5v5M9.5 9l1.5 1.5L12.5 9"></path></svg>
-Markdown
-</button>
 </header>
 
 <footer style="position: absolute; left: 16px; right: 16px; bottom: 16px; min-height: 68px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 12px 14px 12px 20px; background-color: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 14px; box-shadow: 0 8px 24px rgba(16,24,40,0.08)">
@@ -216,6 +227,7 @@ Next: {{ cap.nextLabel }}
 <span class="pill err">Not applied</span>
 </sc-if>
 <button class="btn sm" onClick="{{ onCopy }}">{{ copyLabel }}</button>
+<button class="btn sm" onClick="{{ onDownload }}">Download</button>
 <button class="icon-btn" aria-label="Close markdown panel" onClick="{{ togglePanel }}">
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
 </button>
@@ -242,14 +254,16 @@ class Component extends DCLogic {
     super(props);
     const parsed = Component.parseMd(Component.seedMd());
     if (!parsed.ok) throw new Error('bug: this should never happen — seed markdown invalid at line ' + parsed.error.line + ': ' + parsed.error.message);
+    const focus = Component.viewFromUrl();
     this.state = {
       model: parsed.model,
       md: Component.serializeMd(parsed.model),
       error: null,
       history: Component.emptyHistory(),
-      focus: null,
-      rot: 0,
+      focus: focus,
+      rot: focus === null ? 0 : Component.meta()[focus].angle,
       hover: null,
+      viewMenu: false,
       panelOpen: true,
       copied: false,
       vw: 1440,
@@ -757,14 +771,41 @@ class Component extends DCLogic {
     });
   }
 
+  // ?view=breakthrough|annual|priorities|targets|owners (each section's `nav`,
+  // lowercased); absent or unknown = full matrix.
+  static viewFromUrl() {
+    const v = (new URLSearchParams(location.search).get('view') || '').toLowerCase();
+    const meta = Component.meta();
+    return Component.order().find((k) => meta[k].nav.toLowerCase() === v) || null;
+  }
+
+  static viewToUrl(sec) {
+    const u = new URL(location.href);
+    if (sec === null) u.searchParams.delete('view'); else u.searchParams.set('view', Component.meta()[sec].nav.toLowerCase());
+    history.replaceState(null, '', u);
+  }
+
   focusOn(sec) {
     const m = Component.meta()[sec];
     if (!m) throw new Error('bug: this should never happen — unknown section ' + sec);
-    this.setState((s) => ({ focus: sec, rot: Component.nearest(m.angle, s.rot), hover: null }));
+    Component.viewToUrl(sec);
+    this.setState((s) => ({ focus: sec, rot: Component.nearest(m.angle, s.rot), hover: null, viewMenu: false }));
   }
 
   showAll() {
-    this.setState((s) => ({ focus: null, rot: Component.nearest(0, s.rot), hover: null }));
+    Component.viewToUrl(null);
+    this.setState((s) => ({ focus: null, rot: Component.nearest(0, s.rot), hover: null, viewMenu: false }));
+  }
+
+  // Saves under the ?src= file's name, so it can be dropped straight back
+  // into the data repo.
+  downloadMd() {
+    const src = new URLSearchParams(location.search).get('src') || '';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([this.state.md], { type: 'text/markdown' }));
+    a.download = src.split('/').pop().split('?')[0] || 'x-matrix.md';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 0);
   }
 
   copyMd() {
@@ -951,6 +992,13 @@ class Component extends DCLogic {
       cells: cells,
       ownersTag: ownersTag,
       navItems: navItems,
+      viewMenu: s.viewMenu,
+      viewMenuStr: s.viewMenu ? 'true' : 'false',
+      viewLabel: s.focus === null ? 'Full matrix' : model.headings[s.focus],
+      viewColor: s.focus === null ? '#16181D' : meta[s.focus].ac,
+      toggleViewMenu: () => this.setState((st) => ({ viewMenu: !st.viewMenu })),
+      closeViewMenu: () => this.setState({ viewMenu: false }),
+      onMenuKey: (e) => { if (e.key === 'Escape') this.setState({ viewMenu: false }); },
       cap: cap,
       isFocus: s.focus !== null,
       isOverview: s.focus === null,
@@ -973,7 +1021,8 @@ class Component extends DCLogic {
       errLine: locked ? s.error.line : 0,
       errMessage: locked ? s.error.message : '',
       copyLabel: s.copied === true ? 'Copied' : s.copied === 'failed' ? 'Copy failed: select the text instead' : 'Copy',
-      onCopy: () => this.copyMd()
+      onCopy: () => this.copyMd(),
+      onDownload: () => this.downloadMd()
     };
   }
 }
