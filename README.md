@@ -22,8 +22,9 @@ some browsers block the scripts over file://.
 
 ## Hosting & external data
 
-Served on GitHub Pages (Settings → Pages → deploy from branch, root).
-`.nojekyll` keeps `.md` files served raw.
+Served on GitHub Pages by `.github/workflows/pages.yml` on pushes to `master`
+(Settings → Pages → Source: **GitHub Actions**; the `github-pages` environment
+must allow `master`). `.md` files are served raw, without Jekyll.
 
 Load any markdown with `?src=<url>` (absolute, or relative to the page), e.g.
 `https://aaronp.github.io/Hoshin-Kanri/?src=examples/acme-plan/x-matrix.md`.

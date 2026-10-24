@@ -1,10 +1,11 @@
 # Publishes this repo as-is to GitHub Pages (no Jekyll, so x-matrix.md is
 # served raw for the viewer to fetch).
 # One-time setup: Settings → Pages → Source: "GitHub Actions".
+# The github-pages environment must allow `master` (see README).
 name: Pages
 on:
   push:
-    branches: [main]
+    branches: [master, main]
   workflow_dispatch:
 permissions:
   contents: read
