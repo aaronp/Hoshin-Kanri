@@ -34,8 +34,18 @@ Load any markdown with `?src=<url>` (absolute, or relative to the page), e.g.
 The source must allow CORS (GitHub Pages and raw.githubusercontent.com do).
 
 Other params (kept in sync as you click, so the URL is always shareable):
-`view=breakthrough|annual|priorities|targets|owners` (absent = full matrix)
-and `markdown` (present = show the Markdown panel).
+`view=<section heading, slugified>` e.g. `view=annual-objectives` (absent = full
+matrix) and `markdown` (present = show the Markdown panel).
+
+## Markdown format
+
+`# Title`, then 1–8 `## ` sections of `- slug: Title` items. The sections go
+round a polygon from the bottom, clockwise, and each one intersects its
+neighbours: 1 section is a list, 2 a table, 3 a triangle, 4 the classic X,
+5 or more a star. `## Owners > Priorities` attaches a section to just one
+other section (here, Priorities), drawn beyond the next section's rows.
+Links go under `## Intersections` as `- from -> to: strong | supporting`
+(or `leads | supports`).
 
 ## Publishing your own X-Matrix
 

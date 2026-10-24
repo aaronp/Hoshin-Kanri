@@ -81,6 +81,14 @@ button.lab:focus-visible{outline:2px solid var(--ac);outline-offset:-2px}
 .pill.ok{background:#E5F4EA;color:#0E6B36}
 .pill.err{background:#FDECEC;color:#A11B12}
 code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0F3;padding:2px 5px;border-radius:4px;color:#16181D}
+.field{box-sizing:border-box;height:40px;min-width:0;border:1px solid #D5D9E0;border-radius:8px;background:#fff;padding:0 10px;font:500 13.5px/1 Inter,system-ui,sans-serif;color:#16181D;outline:none}
+.field:focus{border-color:#3346D3;box-shadow:0 0 0 2px #DCE0FA}
+.grip{flex:0 0 auto;width:26px;height:40px;border:0;border-radius:6px;padding:0;background:transparent;color:#6B7280;font-size:16px;cursor:grab}
+.grip:hover{background:#EEF0F3;color:#16181D}
+.grip:focus-visible{outline:2px solid #3346D3;outline-offset:-2px}
+.att{flex:0 0 auto;display:flex;align-items:center;gap:6px;font:500 13px/1 Inter,system-ui,sans-serif;color:#3A404A;cursor:pointer}
+.att:has(input:disabled){opacity:.4;cursor:default}
+.del:disabled{opacity:.35;cursor:default;background:transparent;color:#6B7280}
 </style>
 </helmet>
 <div ref="{{ setVp }}" style="position: relative; width: 100%; height: 100vh; min-height: 640px; overflow: hidden; background-color: #F3F4F6; font-family: Inter, system-ui, sans-serif; color: #16181D">
@@ -135,13 +143,17 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 </button>
 </sc-for>
 
-<button class="otag" style="position: absolute; {{ ownersTag.style }}" aria-label="Edit {{ ownersTag.label }}" onClick="{{ ownersTag.onClick }}">
-<span class="lab" style="position: absolute; {{ ownersTag.labStyle }}"><span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ ownersTag.label }}</span></span>
+<sc-for list="{{ tags }}" as="g" hint-placeholder-count="1">
+<button class="otag" style="position: absolute; {{ g.style }}" aria-label="Edit {{ g.label }}" onClick="{{ g.onClick }}">
+<span class="lab" style="position: absolute; {{ g.labStyle }}"><span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap">{{ g.label }}</span></span>
 </button>
+</sc-for>
 
+<sc-if value="{{ hub }}" hint-placeholder-val="{{ true }}">
 <button class="hub" style="position: absolute; left: -17px; top: -17px; width: 34px; height: 34px" aria-label="Show full matrix" title="Show full matrix" onClick="{{ showAll }}">
 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M2.5 2.5l9 9M11.5 2.5l-9 9"></path></svg>
 </button>
+</sc-if>
 </div>
 
 <header style="position: absolute; left: 0; right: 0; top: 0; min-height: 68px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 12px 20px; background-color: rgba(255,255,255,0.94); border-bottom: 1px solid #E2E5EA">
@@ -168,6 +180,10 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 </div>
 </sc-if>
 </nav>
+<button class="btn sm" onClick="{{ openCreate }}">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
+Create
+</button>
 <button class="btn sm {{ mdBtnCls }}" aria-pressed="{{ panelOpenStr }}" onClick="{{ togglePanel }}">
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="3" width="13" height="10" rx="1.5"></rect><path d="M4 10.5V5.5l2 2.5 2-2.5v5M11 5.5v5M9.5 9l1.5 1.5L12.5 9"></path></svg>
 Markdown
@@ -186,7 +202,7 @@ Markdown
 <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
 <div style="flex: 1 1 320px; min-width: 0">
 <div style="font-size: 14px; font-weight: 600; color: #16181D">Full matrix</div>
-<div style="font-size: 13px; color: #555C68; margin-top: 3px">Click a quadrant of the X to rotate into it and edit its rows. Click any grid cell to mark how two items relate.</div>
+<div style="font-size: 13px; color: #555C68; margin-top: 3px">Click a section to rotate into it and edit its rows. Click any grid cell to mark how two items relate.</div>
 </div>
 </sc-if>
 <sc-if value="{{ isFocus }}" hint-placeholder-val="{{ false }}">
@@ -241,10 +257,45 @@ Next: {{ cap.nextLabel }}
 <label for="xm-md" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Matrix markdown</label>
 <textarea id="xm-md" class="md" spellcheck="false" value="{{ md }}" onChange="{{ onMd }}"></textarea>
 <div style="padding: 12px 18px 14px; border-top: 1px solid #E2E5EA; font-size: 12px; line-height: 1.9; color: #3A404A">
-<div><code class="k"># Title</code>, then <code class="k">## </code> sections read by position, any wording, optional <code class="k">: label</code> after the title: 1 breakthrough (bottom) · 2 annual (left) · 3 priorities (top) · 4 targets (right) · 5 owners · 6 intersections</div>
+<div><code class="k"># Title</code>, then 1–8 <code class="k">## </code> sections, any wording, optional <code class="k">: label</code>. They go round a polygon from the bottom, clockwise: 1 = list · 2 = table · 3 = triangle · 4 = X · 5+ = star. <code class="k">## Owners &gt; Priorities</code> attaches a section to one other. <code class="k">## Intersections</code> holds the links.</div>
 <div>Items: <code class="k">- slug: Title</code> · Links: <code class="k">- from -&gt; to: strong | supporting</code> (owners: <code class="k">leads | supports</code>)</div>
 </div>
 </aside>
+</sc-if>
+
+<sc-if value="{{ createOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; padding: 16px; background-color: rgba(16,24,40,0.35)" onClick="{{ cancelCreate }}">
+<div role="dialog" aria-modal="true" aria-labelledby="xm-create-h" style="box-sizing: border-box; width: 100%; max-width: 560px; max-height: 100%; overflow: auto; display: flex; flex-direction: column; gap: 14px; padding: 20px; background-color: #FFFFFF; border-radius: 14px; box-shadow: 0 24px 48px rgba(16,24,40,0.18)" onClick="{{ stopClick }}" onKeyDown="{{ onCreateKey }}">
+<div>
+<div id="xm-create-h" style="font-size: 16px; font-weight: 650; color: #16181D">New diagram</div>
+<div style="font-size: 12.5px; color: #555C68; margin-top: 3px">Sections go round the shape from the bottom, clockwise. {{ createShape }}</div>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; font-weight: 600; color: #3A404A">Title
+<input class="field" type="text" value="{{ createTitle }}" onChange="{{ onCreateTitle }}">
+</label>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 12.5px; color: #555C68">Drag <span aria-hidden="true">⠿</span> to reorder (or focus it and use ↑ ↓). An attached section hangs off the one above it.</div>
+<sc-for list="{{ createRows }}" as="r" hint-placeholder-count="5">
+<div style="display: flex; align-items: center; gap: 8px; border-radius: 8px; {{ r.style }}" onDragOver="{{ r.onDragOver }}" onDrop="{{ r.onDrop }}">
+<button class="grip" draggable="true" aria-label="{{ r.gripAria }}" title="Drag to reorder" onDragStart="{{ r.onDragStart }}" onDragEnd="{{ r.onDragEnd }}" onKeyDown="{{ r.onGripKey }}">⠿</button>
+<input class="field" style="flex: 1 1 0" type="text" value="{{ r.name }}" aria-label="{{ r.aria }}" onChange="{{ r.onName }}">
+<label class="att"><input type="checkbox" checked="{{ r.attached }}" disabled="{{ r.first }}" onChange="{{ r.onAttached }}">Attached</label>
+<button class="del" aria-label="{{ r.delAria }}" title="Remove" disabled="{{ r.cantRemove }}" onClick="{{ r.onRemove }}">
+<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg>
+</button>
+</div>
+</sc-for>
+<div><button class="btn sm" disabled="{{ cantAddRow }}" onClick="{{ onAddRow }}">Add section</button></div>
+</div>
+<sc-if value="{{ createErr }}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="padding: 10px 12px; border-radius: 8px; background-color: #FDECEC; color: #7A1610; font-size: 12.5px; line-height: 1.45">{{ createErrMessage }}</div>
+</sc-if>
+<div style="display: flex; justify-content: flex-end; gap: 8px">
+<button class="btn sm" onClick="{{ cancelCreate }}">Cancel</button>
+<button class="btn sm pri" onClick="{{ onCreate }}">Create</button>
+</div>
+</div>
+</div>
 </sc-if>
 </div>
 </x-dc>
@@ -254,23 +305,23 @@ class Component extends DCLogic {
     super(props);
     const parsed = Component.parseMd(Component.seedMd());
     if (!parsed.ok) throw new Error('bug: this should never happen — seed markdown invalid at line ' + parsed.error.line + ': ' + parsed.error.message);
-    const focus = Component.viewFromUrl();
-    this.state = {
+    this.state = Object.assign({
       model: parsed.model,
       md: Component.serializeMd(parsed.model),
       error: null,
       history: Component.emptyHistory(),
-      focus: focus,
-      rot: focus === null ? 0 : Component.meta()[focus].angle,
       hover: null,
       viewMenu: false,
       panelOpen: new URLSearchParams(location.search).has('markdown'),
       copied: false,
       vw: 1440,
-      vh: 900
-    };
+      vh: 900,
+      draft: null,
+      dropKey: null
+    }, Component.viewFromUrl(parsed.model));
     this.ro = null;
     this.copyTimer = null;
+    this.dragKey = null; // row being dragged in the Create dialog
     this.setVp = (el) => {
       if (this.ro) { this.ro.disconnect(); this.ro = null; }
       if (!el) return;
@@ -296,7 +347,7 @@ class Component extends DCLogic {
       .then((text) => {
         const r = Component.parseMd(text);
         this.setState(r.ok
-          ? { md: text, model: r.model, error: null, history: Component.emptyHistory() }
+          ? Object.assign({ md: text, model: r.model, error: null, history: Component.emptyHistory() }, Component.viewFromUrl(r.model))
           : { md: text, error: r.error, history: Component.emptyHistory() });
       })
       .catch((e) => this.setState({ error: { line: 1, message: 'Could not load ' + src + ' (' + e.message + '). Showing the built-in example.' } }));
@@ -312,71 +363,53 @@ class Component extends DCLogic {
   // =====================================================================
 
   static get MAX() { return 8; }
+  static get MAX_SECTIONS() { return 8; }
   static get PANEL_W() { return 440; }
 
-  static meta() {
-    return {
-      strategic: { code: 'S', cls: 'h', angle: 0, heading: 'Breakthrough objectives', eyebrow: '3–5 year', title: 'Breakthrough objectives', nav: 'Breakthrough', noun: 'objective', plural: 'objectives', hint: 'The few long-range shifts that define success. Aim for 3–5.', ac: '#3346D3', tint: '#ECEEFC', tint2: '#DCE0FA' },
-      annual: { code: 'A', cls: 'v', angle: -90, heading: 'Annual objectives', eyebrow: 'This year', title: 'Annual objectives', nav: 'Annual', noun: 'objective', plural: 'objectives', hint: 'What must be achieved this year to move each breakthrough forward.', ac: '#0A6E64', tint: '#E3F3F1', tint2: '#CBE9E4' },
-      priorities: { code: 'P', cls: 'h', angle: 180, heading: 'Priorities', eyebrow: 'Improvement', title: 'Top-level priorities', nav: 'Priorities', noun: 'priority', plural: 'priorities', hint: 'The initiatives and projects that will deliver this year’s objectives.', ac: '#A84C09', tint: '#FCEEE3', tint2: '#F8DCC6' },
-      targets: { code: 'T', cls: 'v', angle: 90, heading: 'Targets', eyebrow: 'Metrics', title: 'Targets to improve', nav: 'Targets', noun: 'target', plural: 'targets', hint: 'Measurable results that show each priority is working.', ac: '#7436C2', tint: '#F2ECFB', tint2: '#E4D7F7' },
-      owners: { code: 'O', cls: 'v', angle: 90, heading: 'Owners', eyebrow: 'Resources', title: 'Owners', nav: 'Owners', noun: 'owner', plural: 'owners', hint: 'Who leads (●) and who supports (○) each priority.', ac: '#3F4A5A', tint: '#EEF0F3', tint2: '#DEE2E8' }
-    };
-  }
-
-  static order() { return ['strategic', 'annual', 'priorities', 'targets', 'owners']; }
-  static required() { return ['strategic', 'annual', 'priorities', 'targets']; }
-
-  // '## ' headings are identified by POSITION, never by their wording:
-  //   1st = breakthrough objectives (bottom), 2nd = annual objectives (left),
-  //   3rd = priorities (top), 4th = targets (right), 5th = owners, 6th = intersections.
-  // The heading text is kept verbatim and is what the matrix displays.
-  static headingSlots() { return ['strategic', 'annual', 'priorities', 'targets', 'owners', 'intersections']; }
-
-  // Role names used only in error messages, so they still make sense when the
-  // user has renamed every heading.
-  static roleName(key) {
-    const r = { strategic: '1st (breakthrough objectives)', annual: '2nd (annual objectives)', priorities: '3rd (priorities)', targets: '4th (targets)', owners: '5th (owners)', intersections: '6th (intersections)' }[key];
-    if (!r) throw new Error('bug: this should never happen — no role for ' + key);
-    return r;
-  }
-
-  // Heading text used when an optional section (owners, intersections) is
-  // absent from the markdown, so serialising can still write it.
-  // Small per-section labels ("3–5 year", "This year"…). Empty = none shown.
-  static defaultLabels() {
-    return { strategic: '', annual: '', priorities: '', targets: '', owners: '', intersections: '' };
-  }
-
-  static headingLine(model, key) {
-    const label = model.labels[key];
-    if (typeof label !== 'string') throw new Error('bug: this should never happen — no label for ' + key);
-    return '## ' + model.headings[key] + (label === '' ? '' : ': ' + label);
-  }
-
-  static defaultHeadings() {
-    return { strategic: 'Breakthrough objectives', annual: 'Annual objectives', priorities: 'Priorities', targets: 'Targets', owners: 'Owners', intersections: 'Intersections' };
-  }
-
-  // The five grids of the X-matrix. `col` is the section drawn as columns,
-  // `row` the one drawn as rows; `from` says which side is written first in
-  // the markdown arrow (`- from -> to: value`) when serialising. Parsing
-  // accepts either direction.
-  static pairs() {
+  // Colours by section position in the markdown.
+  static palette() {
     return [
-      { key: 'annual|strategic', col: 'annual', row: 'strategic', from: 'col', owner: false },
-      { key: 'annual|priorities', col: 'annual', row: 'priorities', from: 'row', owner: false },
-      { key: 'targets|priorities', col: 'targets', row: 'priorities', from: 'col', owner: false },
-      { key: 'targets|strategic', col: 'targets', row: 'strategic', from: 'col', owner: false },
-      { key: 'owners|priorities', col: 'owners', row: 'priorities', from: 'col', owner: true }
+      { ac: '#3346D3', tint: '#ECEEFC', tint2: '#DCE0FA' },
+      { ac: '#0A6E64', tint: '#E3F3F1', tint2: '#CBE9E4' },
+      { ac: '#A84C09', tint: '#FCEEE3', tint2: '#F8DCC6' },
+      { ac: '#7436C2', tint: '#F2ECFB', tint2: '#E4D7F7' },
+      { ac: '#3F4A5A', tint: '#EEF0F3', tint2: '#DEE2E8' },
+      { ac: '#B42318', tint: '#FDECEC', tint2: '#FAD7D4' },
+      { ac: '#2E7D32', tint: '#E8F5E9', tint2: '#CDEBD0' },
+      { ac: '#B0307A', tint: '#FBEAF3', tint2: '#F5D3E6' }
     ];
   }
 
-  static linkKey(pair, colId, rowId) { return pair + '::' + colId + '::' + rowId; }
+  // One letter per section for row badges: the first letter of its heading
+  // not already taken by an earlier section.
+  static codes(sections) {
+    return sections.reduce((acc, s) => {
+      const c = (s.title.toUpperCase().match(/[A-Z]/g) || []).find((ch) => acc.indexOf(ch) < 0);
+      return acc.concat([c || String(acc.length + 1)]);
+    }, []);
+  }
+
+  static slug(text) { return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+
+  // Sections not attached to another one: these form the polygon, in order.
+  static ring(model) { return model.sections.map((_, i) => i).filter((i) => model.sections[i].attach === null); }
+
+  // The grids. Around the polygon each section meets the next one (the last
+  // wraps to the first from 3 sides up); an attached section meets only its
+  // target. `a`, `b` are section indices.
+  static pairs(model) {
+    const ring = Component.ring(model);
+    const N = ring.length;
+    const around = N < 2 ? [] : N === 2 ? [{ a: ring[0], b: ring[1], attached: false }]
+      : ring.map((i, r) => ({ a: i, b: ring[(r + 1) % N], attached: false }));
+    return around.concat(model.sections.reduce((acc, s, i) => (s.attach === null ? acc : acc.concat([{ a: i, b: s.attach, attached: true }])), []));
+  }
+
+  static linkKey(x, y) { return x < y ? x + '::' + y : y + '::' + x; }
 
   static markWord(pair, v) {
-    if (v === 1) return pair.owner ? 'leads' : 'strong';
-    if (v === 2) return pair.owner ? 'supports' : 'supporting';
+    if (v === 1) return pair.attached ? 'leads' : 'strong';
+    if (v === 2) return pair.attached ? 'supports' : 'supporting';
     throw new Error('bug: this should never happen — unknown mark value ' + v);
   }
 
@@ -408,7 +441,7 @@ class Component extends DCLogic {
       '- nps: NPS ≥ 55',
       '- on-time: 98% of orders shipped < 24h',
       '',
-      '## Owners: Resources',
+      '## Owners > Top-level priorities: Resources',
       '- priya: Priya Shah',
       '- tom: Tom Okafor',
       '- lena: Lena Fischer',
@@ -454,8 +487,9 @@ class Component extends DCLogic {
   // =====================================================================
   // Markdown ⇄ model (pure). Model shape:
   //   { title: string,
-  //     sections: { strategic|annual|priorities|targets|owners: [{ id: slug, text }] },
-  //     links: { [linkKey(pair, colId, rowId)]: 1 (strong/leads) | 2 (supporting/supports) } }
+  //     sections: [{ title, label, attach: null | index of target section, items: [{ id: slug, text }] }],
+  //     linksHeading: string,
+  //     links: { [linkKey(idA, idB)]: 1 (strong/leads) | 2 (supporting/supports) } }
   // =====================================================================
 
   static parseFail(line, message) {
@@ -477,14 +511,19 @@ class Component extends DCLogic {
     }
   }
 
+  // Every "## " heading is a section, in order, any wording — except the
+  // intersections section: titled "Intersections", or whose items are links.
+  // "## Title > Other title" attaches a section to another one.
   static parseMdStrict(md) {
     const fail = Component.parseFail;
-    const slots = Component.headingSlots();
-    const meta = Component.meta();
     const SLUG = '[a-z0-9][a-z0-9-]*';
     const itemRe = new RegExp('^(' + SLUG + ')\\s*:\\s*(.*)$');
     const linkRe = new RegExp('^(' + SLUG + ')\\s*->\\s*(' + SLUG + ')\\s*:\\s*([A-Za-z]+)\\s*$');
     const lines = md.split('\n');
+    const asLinks = (st, heading, ln) => {
+      if (st.linksHeading !== null) fail(ln, 'Only one intersections section is allowed.');
+      return Object.assign({}, st, { current: 'links', linksHeading: heading });
+    };
 
     const acc = lines.reduce((st, raw, idx) => {
       const ln = idx + 1;
@@ -499,92 +538,103 @@ class Component extends DCLogic {
       }
       const h2 = /^##\s+(.+)$/.exec(t);
       if (h2) {
-        if (st.seen.length >= slots.length) fail(ln, 'Too many "## " sections. The matrix uses at most ' + slots.length + ', in this order: breakthrough objectives, annual objectives, priorities, targets, owners, intersections.');
-        const key = slots[st.seen.length];
-        // "## Title: label" — everything after the FIRST colon is the small
-        // label (e.g. a time horizon); no colon means no label.
-        const raw = h2[1].trim();
-        const colon = raw.indexOf(':');
-        const htitle = (colon < 0 ? raw : raw.slice(0, colon)).trim();
-        const hlabel = colon < 0 ? '' : raw.slice(colon + 1).trim();
-        if (htitle === '') fail(ln, 'This heading has a label but no title. Write it as "## Title: label".');
-        return Object.assign({}, st, {
-          current: key,
-          seen: st.seen.concat([key]),
-          headings: Object.assign({}, st.headings, { [key]: htitle }),
-          labels: Object.assign({}, st.labels, { [key]: hlabel })
-        });
+        // "## Title > Target: label" — everything after the FIRST colon is
+        // the small label (e.g. a time horizon); no colon means no label.
+        const heading = h2[1].trim();
+        const colon = heading.indexOf(':');
+        const head = colon < 0 ? heading : heading.slice(0, colon);
+        const gt = head.indexOf('>');
+        const htitle = (gt < 0 ? head : head.slice(0, gt)).trim();
+        const target = gt < 0 ? null : head.slice(gt + 1).trim();
+        if (htitle === '') fail(ln, 'This heading has no title. Write it as "## Title" or "## Title: label".');
+        if (target === '') fail(ln, 'Nothing after ">". Write "## Title > Other section title" to attach this section to another.');
+        if (target === null && htitle.toLowerCase() === 'intersections') return asLinks(st, heading, ln);
+        const sec = { title: htitle, label: colon < 0 ? '' : heading.slice(colon + 1).trim(), target: target, heading: heading, ln: ln, items: [] };
+        return Object.assign({}, st, { current: st.secs.length, secs: st.secs.concat([sec]) });
       }
       const li = /^[-*]\s+(.*)$/.exec(t);
       if (li) {
         if (st.current === null) fail(ln, 'List item before any "## " section heading.');
         const body = li[1];
-        if (st.current === 'intersections') {
-          const m = linkRe.exec(body);
-          if (!m) fail(ln, 'Intersections must look like "- from-slug -> to-slug: strong" (or supporting / leads / supports).');
-          return Object.assign({}, st, { pending: st.pending.concat([{ ln: ln, a: m[1], b: m[2], word: m[3].toLowerCase() }]) });
+        const lm = linkRe.exec(body);
+        const cur = st.current === 'links' ? null : st.secs[st.current];
+        // A section that starts with a link is the intersections section.
+        const st2 = lm && cur && cur.items.length === 0 && cur.target === null
+          ? Object.assign(asLinks(st, cur.heading, ln), { secs: st.secs.slice(0, -1) })
+          : st;
+        if (st2.current === 'links') {
+          if (!lm) fail(ln, 'Intersections must look like "- from-slug -> to-slug: strong" (or supporting / leads / supports).');
+          return Object.assign({}, st2, { pending: st2.pending.concat([{ ln: ln, a: lm[1], b: lm[2], word: lm[3].toLowerCase() }]) });
         }
         const m = itemRe.exec(body);
         if (!m) fail(ln, 'Items must look like "- slug: Title". Slugs use lowercase letters, digits and hyphens.');
         if (st.where[m[1]]) fail(ln, 'Slug "' + m[1] + '" is already used on line ' + st.where[m[1]].ln + '. Slugs must be unique across the whole matrix.');
-        if (st.sections[st.current].length >= Component.MAX) fail(ln, '"' + st.headings[st.current] + '" can hold at most ' + Component.MAX + ' items.');
+        if (cur.items.length >= Component.MAX) fail(ln, '"' + cur.title + '" can hold at most ' + Component.MAX + ' items.');
         const item = { id: m[1], text: m[2].trim() };
         return Object.assign({}, st, {
-          sections: Object.assign({}, st.sections, { [st.current]: st.sections[st.current].concat([item]) }),
+          secs: st.secs.map((s, i) => (i === st.current ? Object.assign({}, s, { items: s.items.concat([item]) }) : s)),
           where: Object.assign({}, st.where, { [m[1]]: { sec: st.current, ln: ln } })
         });
       }
       return fail(ln, 'Unrecognised line. Expected "# Title", a "## Section" heading, or a "- " list item.');
-    }, { title: null, titleLine: 0, current: null, seen: [], headings: {}, labels: {}, sections: { strategic: [], annual: [], priorities: [], targets: [], owners: [] }, where: {}, pending: [] });
+    }, { title: null, titleLine: 0, current: null, secs: [], linksHeading: null, where: {}, pending: [] });
 
     if (acc.title === null) fail(1, 'The markdown must start with a "# Title" line.');
     if (acc.title === '') fail(acc.titleLine, 'The title is empty.');
-    Component.required().forEach((k) => {
-      if (acc.seen.indexOf(k) < 0) fail(lines.length, 'Missing the ' + Component.roleName(k) + ' "## " section. The first four "## " headings are required; their wording is up to you.');
-    });
+    if (acc.secs.length === 0) fail(lines.length, 'Add at least one "## " section of "- slug: Title" items.');
+    if (acc.secs.length > Component.MAX_SECTIONS) fail(acc.secs[Component.MAX_SECTIONS].ln, 'At most ' + Component.MAX_SECTIONS + ' sections are supported.');
 
-    const pairs = Component.pairs();
+    const attach = acc.secs.map((s) => {
+      if (s.target === null) return null;
+      const t = acc.secs.findIndex((o) => o.target === null && o.title.toLowerCase() === s.target.toLowerCase());
+      if (t < 0) fail(s.ln, 'No section titled "' + s.target + '" to attach to (attached sections can’t be targets).');
+      return t;
+    });
+    attach.forEach((t, i) => {
+      if (t !== null && attach.indexOf(t) !== i) fail(acc.secs[i].ln, 'Only one section can attach to "' + acc.secs[t].title + '".');
+    });
+    const firstAttached = attach.findIndex((t) => t !== null);
+    if (firstAttached >= 0 && attach.filter((t) => t === null).length < 2) fail(acc.secs[firstAttached].ln, 'Attaching needs at least two other sections.');
+
+    const model = {
+      title: acc.title,
+      sections: acc.secs.map((s, i) => ({ title: s.title, label: s.label, attach: attach[i], items: s.items })),
+      linksHeading: acc.linksHeading === null ? 'Intersections' : acc.linksHeading,
+      links: {}
+    };
+    const pairs = Component.pairs(model);
     const links = acc.pending.reduce((out, p) => {
       const wa = acc.where[p.a];
       const wb = acc.where[p.b];
       if (!wa) fail(p.ln, 'Unknown slug "' + p.a + '".');
       if (!wb) fail(p.ln, 'Unknown slug "' + p.b + '".');
-      const pair = pairs.find((q) => (q.col === wa.sec && q.row === wb.sec) || (q.col === wb.sec && q.row === wa.sec));
-      if (!pair) fail(p.ln, '"' + p.a + '" (' + acc.headings[wa.sec] + ') and "' + p.b + '" (' + acc.headings[wb.sec] + ') are not adjacent in the X-matrix, so they cannot be linked.');
-      const colId = wa.sec === pair.col ? p.a : p.b;
-      const rowId = wa.sec === pair.col ? p.b : p.a;
-      const allowed = pair.owner ? { leads: 1, supports: 2 } : { strong: 1, supporting: 2 };
-      const v = allowed[p.word];
-      if (!v) fail(p.ln, 'Unknown value "' + p.word + '". Use ' + Object.keys(allowed).join(' or ') + ' here.');
-      const k = Component.linkKey(pair.key, colId, rowId);
+      const pair = pairs.find((q) => (q.a === wa.sec && q.b === wb.sec) || (q.a === wb.sec && q.b === wa.sec));
+      if (!pair) fail(p.ln, '"' + p.a + '" (' + acc.secs[wa.sec].title + ') and "' + p.b + '" (' + acc.secs[wb.sec].title + ') are not adjacent in the matrix, so they cannot be linked.');
+      const v = { strong: 1, leads: 1, supporting: 2, supports: 2 }[p.word];
+      if (!v) fail(p.ln, 'Unknown value "' + p.word + '". Use strong, supporting, leads or supports.');
+      const k = Component.linkKey(p.a, p.b);
       if (out[k]) fail(p.ln, 'This intersection is already set earlier.');
       return Object.assign({}, out, { [k]: v });
     }, {});
 
-    return {
-      title: acc.title,
-      headings: Object.assign({}, Component.defaultHeadings(), acc.headings),
-      labels: Object.assign({}, Component.defaultLabels(), acc.labels),
-      sections: acc.sections,
-      links: links
-    };
+    return Object.assign(model, { links: links });
   }
 
+  // Links are written from the later section's item to the earlier one's.
   static serializeMd(model) {
-    const meta = Component.meta();
     const item = (it) => ('- ' + it.id + ': ' + it.text).replace(/\s+$/, '');
-    const blocks = Component.order().map((k) => [Component.headingLine(model, k)].concat(model.sections[k].map(item)).join('\n'));
-    const linkLines = Component.pairs().reduce((out, p) => {
-      const fromSec = p.from === 'col' ? p.col : p.row;
-      const toSec = p.from === 'col' ? p.row : p.col;
-      return out.concat(model.sections[fromSec].reduce((acc, f) => acc.concat(model.sections[toSec].reduce((acc2, t) => {
-        const colId = p.from === 'col' ? f.id : t.id;
-        const rowId = p.from === 'col' ? t.id : f.id;
-        const v = model.links[Component.linkKey(p.key, colId, rowId)];
+    const head = (s) => '## ' + s.title + (s.attach === null ? '' : ' > ' + model.sections[s.attach].title) + (s.label === '' ? '' : ': ' + s.label);
+    const blocks = model.sections.map((s) => [head(s)].concat(s.items.map(item)).join('\n'));
+    const linkLines = Component.pairs(model).reduce((out, p) => {
+      const from = model.sections[Math.max(p.a, p.b)].items;
+      const to = model.sections[Math.min(p.a, p.b)].items;
+      return out.concat(from.reduce((acc, f) => acc.concat(to.reduce((acc2, t) => {
+        const v = model.links[Component.linkKey(f.id, t.id)];
         return v ? acc2.concat(['- ' + f.id + ' -> ' + t.id + ': ' + Component.markWord(p, v)]) : acc2;
       }, [])), []));
     }, []);
-    return ['# ' + model.title, ''].concat([blocks.join('\n\n'), '', [Component.headingLine(model, 'intersections')].concat(linkLines).join('\n'), '']).join('\n');
+    const tail = linkLines.length === 0 ? [] : ['', ['## ' + model.linksHeading].concat(linkLines).join('\n')];
+    return ['# ' + model.title, '', blocks.join('\n\n')].concat(tail, ['']).join('\n');
   }
 
   // =====================================================================
@@ -592,12 +642,12 @@ class Component extends DCLogic {
   // =====================================================================
 
   static mapSection(model, sec, fn) {
-    if (!Object.prototype.hasOwnProperty.call(model.sections, sec)) throw new Error('bug: this should never happen — unknown section ' + sec);
-    return Object.assign({}, model, { sections: Object.assign({}, model.sections, { [sec]: fn(model.sections[sec]) }) });
+    if (!model.sections[sec]) throw new Error('bug: this should never happen — unknown section ' + sec);
+    return Object.assign({}, model, { sections: model.sections.map((s, i) => (i === sec ? Object.assign({}, s, { items: fn(s.items) }) : s)) });
   }
 
   static uniqueSlug(model, base) {
-    const used = Component.order().reduce((acc, k) => acc.concat(model.sections[k].map((it) => it.id)), []);
+    const used = model.sections.reduce((acc, s) => acc.concat(s.items.map((it) => it.id)), []);
     const pick = (n) => {
       const s = n === 1 ? base : base + '-' + n;
       return used.indexOf(s) < 0 ? s : pick(n + 1);
@@ -610,22 +660,22 @@ class Component extends DCLogic {
   }
 
   static withAdded(model, sec) {
-    if (model.sections[sec].length >= Component.MAX) throw new Error('bug: this should never happen — add beyond MAX in ' + sec);
-    const id = Component.uniqueSlug(model, 'new-' + Component.meta()[sec].noun);
+    if (model.sections[sec].items.length >= Component.MAX) throw new Error('bug: this should never happen — add beyond MAX in ' + sec);
+    const id = Component.uniqueSlug(model, 'new-item');
     return Component.mapSection(model, sec, (items) => items.concat([{ id: id, text: '' }]));
   }
 
   static withRemoved(model, sec, id) {
-    if (model.sections[sec].length <= 1) throw new Error('bug: this should never happen — removing last item in ' + sec);
+    if (model.sections[sec].items.length <= 1) throw new Error('bug: this should never happen — removing last item in ' + sec);
     const links = Object.keys(model.links).reduce((acc, k) => {
       const parts = k.split('::');
-      return parts[1] === id || parts[2] === id ? acc : Object.assign(acc, { [k]: model.links[k] });
+      return parts[0] === id || parts[1] === id ? acc : Object.assign(acc, { [k]: model.links[k] });
     }, {});
     return Object.assign({}, Component.mapSection(model, sec, (items) => items.filter((it) => it.id !== id)), { links: links });
   }
 
-  static withToggled(model, pairKey, colId, rowId) {
-    const k = Component.linkKey(pairKey, colId, rowId);
+  static withToggled(model, idA, idB) {
+    const k = Component.linkKey(idA, idB);
     const cur = model.links[k] || 0;
     const next = cur === 0 ? 1 : cur === 1 ? 2 : cur === 2 ? 0 : (() => { throw new Error('bug: this should never happen — unknown mark value ' + cur); })();
     const links = Object.assign({}, model.links);
@@ -674,66 +724,148 @@ class Component extends DCLogic {
     return target + 360 * Math.round((current - target) / 360);
   }
 
-  // Fixed label rotations: baseline toward the outer edge of the matrix, so
-  // whichever section is rotated to the bottom reads upright. Labels never
-  // turn on their own; they turn only with the chart.
-  static labelGroups() {
+  // =====================================================================
+  // Geometry (pure). Section i of the ring lies on side i of a regular
+  // N-gon, side 0 at the bottom, going clockwise. Its rows are bands
+  // parallel to that side, cut off by the extended neighbouring sides, and
+  // neighbours meet in a grid at their shared corner. N = 4 with apothem 180
+  // is the classic X-matrix; N = 2 is a table (one corner, far ends capped);
+  // N = 1 a capped list. An attached section is laid out like the section
+  // after its target, just beyond that section's rows.
+  //
+  // Every shape is a convex polygon: the intersection of half-planes
+  // { n: unit normal, c } meaning p·n ≤ c, in stage px (y down).
+  // =====================================================================
+
+  static clip(planes) {
+    const B = 1e5;
+    return planes.reduce((poly, h) => {
+      const d = (p) => p[0] * h.n[0] + p[1] * h.n[1] - h.c;
+      return poly.reduce((out, p, i) => {
+        const q = poly[(i + 1) % poly.length];
+        const dp = d(p);
+        const dq = d(q);
+        const kept = dp <= 0 ? out.concat([p]) : out;
+        return (dp <= 0) === (dq <= 0) ? kept : kept.concat([[p[0] + (q[0] - p[0]) * dp / (dp - dq), p[1] + (q[1] - p[1]) * dp / (dp - dq)]]);
+      }, []);
+    }, [[-B, -B], [B, -B], [B, B], [-B, B]]);
+  }
+
+  // Outward normal of a side drawn at `deg` (0 = bottom, clockwise).
+  static unit(deg) {
+    const r = deg * Math.PI / 180;
+    return [-Math.sin(r), Math.cos(r)];
+  }
+
+  // Rotation (deg) that reads each section's rows upright at the bottom;
+  // the stage rotates by minus this to focus it.
+  static angles(model) {
+    const ring = Component.ring(model);
+    const N = ring.length;
+    const at = (r) => (N === 1 ? 0 : N === 2 ? -90 * r : r * 360 / N);
+    return model.sections.map((s, i) => at(s.attach === null ? ring.indexOf(i) : (ring.indexOf(s.attach) + 1) % N));
+  }
+
+  static geometry(model, focus) {
+    const T = 44;
+    const G = 14;
+    const W = 360;
+    const EPS = 0.5; // half the hairline gap between rows and cells
+    const GAP = 5; // half the gap between centre wedges
+    const secs = model.sections;
+    const ring = Component.ring(model);
+    const N = ring.length;
+    const angles = Component.angles(model);
+    const unit = Component.unit;
+    const hp = (n, c) => ({ n: n, c: c });
+    const ge = (n, c) => ({ n: [-n[0], -n[1]], c: -c });
+    const slots = secs.map((s, i) => s.items.length + (focus === i && s.items.length < Component.MAX ? 1 : 0));
+    const after = (r) => (r + 1) % N;
+    const before = (r) => (r + N - 1) % N;
+    const beyond = (r) => (N > 1 ? secs.findIndex((s) => s.attach === ring[before(r)]) : -1);
+
+    // From 5 sides up the neighbours' extended sides converge into star
+    // points, so the polygon grows until its outermost rows stay ~200px long.
+    const depth = (r) => (secs[ring[r]].items.length + 1) * T + (beyond(r) < 0 ? 0 : G + (secs[beyond(r)].items.length + 1) * T);
+    const halfSide = N < 5 ? W / 2 : 100 + Math.max.apply(null, ring.map((_, r) => depth(r))) / Math.tan(2 * Math.PI / N);
+    const a = N < 3 ? 0 : Math.max(W / 2, halfSide / Math.tan(Math.PI / N));
+
+    const ringGeo = ring.map((i, r) => {
+      const n = unit(angles[i]);
+      const other = unit(angles[ring[1 - r]] || 0);
+      const lat = N === 1 ? [hp([-1, 0], W / 2), hp([1, 0], W / 2)]
+        : N === 2 ? [hp(other, 0), hp([-other[0], -other[1]], W)]
+        : [hp(unit(angles[ring[before(r)]]), a), hp(unit(angles[ring[after(r)]]), a)];
+      return { n: n, angle: angles[i], d0: a, lat: lat };
+    });
+    const g = secs.map((s, i) => (s.attach === null ? ringGeo[ring.indexOf(i)] : null)).map((x, i, all) => {
+      if (x) return x;
+      const q = ring[after(ring.indexOf(secs[i].attach))];
+      return { n: all[q].n, angle: all[q].angle, d0: all[q].d0 + slots[q] * T + G, lat: all[q].lat, q: q };
+    });
+
+    const inset = (h) => hp(h.n, h.c - EPS);
+    const band = (i, j0, j1) => [ge(g[i].n, g[i].d0 + j0 * T + EPS), hp(g[i].n, g[i].d0 + j1 * T - EPS)];
+    const bisect = (i, o) => {
+      const v = [g[o].n[0] - g[i].n[0], g[o].n[1] - g[i].n[1]];
+      const len = Math.hypot(v[0], v[1]);
+      return hp([v[0] / len, v[1] / len], -GAP);
+    };
+    // Length of a polygon's edge lying on the line p·n = c.
+    const span = (poly, n, c) => {
+      const u = poly.filter((p) => Math.abs(p[0] * n[0] + p[1] * n[1] - c) < 1).map((p) => p[0] * n[1] - p[1] * n[0]);
+      return u.length < 2 ? 0 : Math.max.apply(null, u) - Math.min.apply(null, u);
+    };
+
     return {
-      strategic: { cls: 'h', base: 0 },
-      annual: { cls: 'v', base: 90 },
-      priorities: { cls: 'h', base: 180 },
-      targets: { cls: 'v', base: -90 },
-      owners: { cls: 'v', base: -90 },
-      ownersTag: { cls: 'h', base: 0 }
+      T: T,
+      ring: ring,
+      angles: angles,
+      strip: (i, j) => Component.clip(band(i, j, j + 1).concat(g[i].lat.map(inset))),
+      // Shortest of a strip's two long edges: the room its label has.
+      stripLen: (i, j, poly) => Math.min(span(poly, g[i].n, g[i].d0 + j * T + EPS), span(poly, g[i].n, g[i].d0 + (j + 1) * T - EPS)),
+      cell: (i, j, k, l) => Component.clip(band(i, j, j + 1).concat(band(k, l, l + 1))),
+      wedge: (i) => {
+        const r = ring.indexOf(i);
+        const sides = N === 1 ? [ge(g[i].n, -64)].concat(g[i].lat)
+          : N === 2 ? [bisect(i, ring[1 - r]), g[i].lat[1]]
+          : [bisect(i, ring[before(r)]), bisect(i, ring[after(r)])];
+        return Component.clip([hp(g[i].n, g[i].d0 - GAP)].concat(sides));
+      },
+      // An attached section's name tag sits past the far end of its columns,
+      // reading like the section whose side that is.
+      tag: (i) => {
+        const far = g[g[i].q].lat[1];
+        return Component.clip(band(i, 0, Math.max(3, secs[i].items.length)).concat([ge(far.n, far.c + 8), hp(far.n, far.c + 38)]));
+      },
+      tagAngle: (i) => angles[ring[after(ring.indexOf(g[i].q))]]
     };
   }
 
-  static layout(sections, focus) {
-    const C = 360;
-    const T = 44;
-    const G = 14;
-    const meta = Component.meta();
-    const n = {};
-    const slots = {};
-    Component.order().forEach((k) => {
-      n[k] = sections[k].length;
-      slots[k] = n[k] + (focus === k && n[k] < Component.MAX ? 1 : 0);
-    });
-    const ownersX0 = C / 2 + slots.targets * T + G;
-    const ownersEnd = ownersX0 + slots.owners * T;
-    const rowY = (sec, i) => {
-      if (sec === 'strategic') return C / 2 + i * T;
-      if (sec === 'priorities') return -C / 2 - (i + 1) * T;
-      throw new Error('bug: this should never happen — rowY for ' + sec);
+  // Absolute box + clip-path for a polygon; (cx, cy) is its vertex mean
+  // relative to the box, where labels are centred.
+  static shapeCss(poly) {
+    if (poly.length < 3) return { cx: 0, cy: 0, css: 'display:none;' };
+    const xs = poly.map((p) => p[0]);
+    const ys = poly.map((p) => p[1]);
+    const x0 = Math.min.apply(null, xs);
+    const y0 = Math.min.apply(null, ys);
+    const px = (v) => Math.round(v * 10) / 10 + 'px';
+    return {
+      cx: xs.reduce((s, v) => s + v, 0) / xs.length - x0,
+      cy: ys.reduce((s, v) => s + v, 0) / ys.length - y0,
+      css: 'left:' + px(x0) + '; top:' + px(y0) + '; width:' + px(Math.max.apply(null, xs) - x0) + '; height:' + px(Math.max.apply(null, ys) - y0) + '; clip-path: polygon(' + poly.map((p) => px(p[0] - x0) + ' ' + px(p[1] - y0)).join(', ') + ');'
     };
-    const colX = (sec, i) => {
-      if (sec === 'annual') return -C / 2 - (i + 1) * T;
-      if (sec === 'targets') return C / 2 + i * T;
-      if (sec === 'owners') return ownersX0 + i * T;
-      throw new Error('bug: this should never happen — colX for ' + sec);
-    };
-    const rect = (sec, i) => meta[sec].cls === 'h'
-      ? { x: -C / 2, y: rowY(sec, i), w: C, h: T }
-      : { x: colX(sec, i), y: -C / 2, w: T, h: C };
-    const full = {
-      x0: -C / 2 - slots.annual * T,
-      x1: ownersEnd,
-      y0: -C / 2 - slots.priorities * T,
-      y1: Math.max(C / 2 + slots.strategic * T, C / 2 + 40)
-    };
-    const boxes = {
-      strategic: { x0: -C / 2 - n.annual * T, x1: C / 2 + n.targets * T, y0: 0, y1: C / 2 + slots.strategic * T },
-      annual: { x0: -C / 2 - slots.annual * T, x1: 0, y0: -C / 2 - n.priorities * T, y1: C / 2 + n.strategic * T },
-      priorities: { x0: -C / 2 - n.annual * T, x1: ownersEnd, y0: -C / 2 - slots.priorities * T, y1: 0 },
-      targets: { x0: 0, x1: C / 2 + slots.targets * T, y0: -C / 2 - n.priorities * T, y1: C / 2 + n.strategic * T },
-      owners: { x0: C / 2, x1: ownersEnd, y0: -C / 2 - n.priorities * T, y1: C / 2 + 40 }
-    };
-    return { C: C, T: T, n: n, ownersX0: ownersX0, rowY: rowY, colX: colX, rect: rect, full: full, boxes: boxes };
   }
 
   // =====================================================================
   // State transitions (the edge: the only place state changes)
   // =====================================================================
+
+  // Focus must point at a section that still exists after the model changes.
+  static keepFocus(s, model) {
+    return s.focus !== null && s.focus >= model.sections.length ? { focus: null, rot: Component.nearest(0, s.rot) } : {};
+  }
 
   // UI edits: transform the model, then regenerate the markdown from it.
   // `tag` groups rapid edits of the same kind (typing in one row, typing in
@@ -752,7 +884,7 @@ class Component extends DCLogic {
     const now = Date.now();
     const r = Component.parseMd(text);
     this.setState((s) => Object.assign(
-      r.ok ? { md: text, model: r.model, error: null, hover: null } : { md: text, error: r.error },
+      r.ok ? Object.assign({ md: text, model: r.model, error: null, hover: null }, Component.keepFocus(s, r.model)) : { md: text, error: r.error },
       { history: Component.commit(s.history, Component.snapshot(s), 'md', now) }
     ));
   }
@@ -760,27 +892,23 @@ class Component extends DCLogic {
   undo() {
     this.setState((s) => {
       const r = Component.stepBack(s.history, Component.snapshot(s));
-      return Object.assign({}, r.snapshot, { history: r.history, hover: null });
+      return Object.assign({}, r.snapshot, { history: r.history, hover: null }, Component.keepFocus(s, r.snapshot.model));
     });
   }
 
   redo() {
     this.setState((s) => {
       const r = Component.stepForward(s.history, Component.snapshot(s));
-      return Object.assign({}, r.snapshot, { history: r.history, hover: null });
+      return Object.assign({}, r.snapshot, { history: r.history, hover: null }, Component.keepFocus(s, r.snapshot.model));
     });
   }
 
-  // ?view=breakthrough|annual|priorities|targets|owners (each section's `nav`,
-  // lowercased); absent or unknown = full matrix.
-  static viewFromUrl() {
+  // ?view=<section heading, slugified> e.g. view=annual-objectives;
+  // absent or unknown = full matrix. Returns { focus, rot }.
+  static viewFromUrl(model) {
     const v = (new URLSearchParams(location.search).get('view') || '').toLowerCase();
-    const meta = Component.meta();
-    return Component.order().find((k) => meta[k].nav.toLowerCase() === v) || null;
-  }
-
-  static viewToUrl(sec) {
-    Component.setUrlParam('view', sec === null ? null : Component.meta()[sec].nav.toLowerCase());
+    const i = model.sections.findIndex((sec) => Component.slug(sec.title) === v);
+    return i < 0 ? { focus: null, rot: 0 } : { focus: i, rot: -Component.angles(model)[i] };
   }
 
   // null removes the param. Rewrites the URL in place (no history entry).
@@ -798,14 +926,15 @@ class Component extends DCLogic {
   }
 
   focusOn(sec) {
-    const m = Component.meta()[sec];
-    if (!m) throw new Error('bug: this should never happen — unknown section ' + sec);
-    Component.viewToUrl(sec);
-    this.setState((s) => ({ focus: sec, rot: Component.nearest(m.angle, s.rot), hover: null, viewMenu: false }));
+    const model = this.state.model;
+    if (!model.sections[sec]) throw new Error('bug: this should never happen — unknown section ' + sec);
+    Component.setUrlParam('view', Component.slug(model.sections[sec].title));
+    const angle = Component.angles(model)[sec];
+    this.setState((s) => ({ focus: sec, rot: Component.nearest(-angle, s.rot), hover: null, viewMenu: false }));
   }
 
   showAll() {
-    Component.viewToUrl(null);
+    Component.setUrlParam('view', null);
     this.setState((s) => ({ focus: null, rot: Component.nearest(0, s.rot), hover: null, viewMenu: false }));
   }
 
@@ -818,6 +947,53 @@ class Component extends DCLogic {
     a.download = src.split('/').pop().split('?')[0] || 'x-matrix.md';
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 0);
+  }
+
+  // ---------- "Create" dialog ----------
+  // A draft is { title, rows: [{ key, name, attached }], nextKey, error }.
+  // Row order is section order; an attached row hangs off the row above it.
+
+  static defaultDraft() {
+    const rows = ['Strategy', 'Objectives', 'Priorities', 'Targets', 'Owners'].map((name, i) => ({ key: i, name: name, attached: name === 'Owners' }));
+    return { title: 'New diagram', rows: rows, nextKey: rows.length, error: null };
+  }
+
+  // Moves `from` to where `to` is; the first row can never be attached.
+  static moveRow(rows, from, to) {
+    const r = rows.slice();
+    r.splice(to, 0, r.splice(from, 1)[0]);
+    return r.map((x, i) => (i === 0 && x.attached ? Object.assign({}, x, { attached: false }) : x));
+  }
+
+  // Draft -> markdown, so the new diagram gets exactly the parser's checks.
+  // Returns { ok, md } or { ok: false, message }.
+  static draftMd(draft) {
+    const title = draft.title.trim();
+    const names = draft.rows.map((r) => r.name.trim());
+    const bad = names.find((n) => n === '' || /[:>]/.test(n) || n.toLowerCase() === 'intersections');
+    if (title === '') return { ok: false, message: 'Give the diagram a title.' };
+    if (bad !== undefined) return { ok: false, message: bad === '' ? 'Every section needs a name.' : '"' + bad + '" can’t be used as a section name (no ":" or ">", and "Intersections" is reserved).' };
+    if (new Set(names.map((n) => n.toLowerCase())).size !== names.length) return { ok: false, message: 'Section names must be different.' };
+    // One blank row per section, so the shape shows and is ready to fill in.
+    const heads = draft.rows.map((r, i) => '## ' + names[i] + (r.attached && i > 0 ? ' > ' + names[i - 1] : '') + '\n- ' + (Component.slug(names[i]) || 'section-' + (i + 1)) + '-1:');
+    return { ok: true, md: ['# ' + title, ''].concat(heads.join('\n\n'), ['']).join('\n') };
+  }
+
+  editDraft(fn) { this.setState((s) => ({ draft: Object.assign({}, fn(s.draft), { error: null }) })); }
+
+  // Replaces the document (undoable) and drops ?src/?view, which belong to the old one.
+  createFromDraft() {
+    const d = Component.draftMd(this.state.draft);
+    const r = d.ok ? Component.parseMd(d.md) : { ok: false, error: { message: d.message } };
+    if (!r.ok) { this.setState((s) => ({ draft: Object.assign({}, s.draft, { error: r.error.message }) })); return; }
+    Component.setUrlParam('src', null);
+    Component.setUrlParam('view', null);
+    const now = Date.now();
+    this.setState((s) => ({
+      model: r.model, md: Component.serializeMd(r.model), error: null, hover: null, draft: null,
+      focus: null, rot: Component.nearest(0, s.rot),
+      history: Component.commit(s.history, Component.snapshot(s), null, now)
+    }));
   }
 
   copyMd() {
@@ -843,10 +1019,13 @@ class Component extends DCLogic {
     const EASE = 'cubic-bezier(.65,0,.25,1)';
     const s = this.state;
     const model = s.model;
+    const secs = model.sections;
     const locked = s.error !== null;
-    const meta = Component.meta();
-    const order = Component.order();
-    const L = Component.layout(model.sections, s.focus);
+    const pal = Component.palette();
+    const codes = Component.codes(secs);
+    const focus = s.focus !== null && s.focus < secs.length ? s.focus : null;
+    const L = Component.geometry(model, focus);
+    const pairs = Component.pairs(model);
     const R = s.rot;
     const TOP = 68;
     const BOT = 100;
@@ -857,139 +1036,144 @@ class Component extends DCLogic {
     const mw = s.panelOpen && wide ? s.vw - panelW : s.vw;
     const mh = s.vh;
 
-    const box = s.focus ? L.boxes[s.focus] : L.full;
-    const quarter = (((Math.round(R / 90)) % 2) + 2) % 2 === 1;
-    const bw = box.x1 - box.x0;
-    const bh = box.y1 - box.y0;
-    const sw = quarter ? bh : bw;
-    const sh = quarter ? bw : bh;
-    const availW = Math.max(240, mw - 64);
-    const availH = Math.max(240, mh - TOP - BOT - 32);
-    const S = Math.min(availW / sw, availH / sh, s.focus ? 1.8 : 1.4);
-    const cx = mw / 2;
-    const cy = TOP + 16 + availH / 2;
-    const fx = (box.x0 + box.x1) / 2;
-    const fy = (box.y0 + box.y1) / 2;
-    const stageStyle = 'transform: translate(' + cx + 'px, ' + cy + 'px) scale(' + S + ') rotate(' + R + 'deg) translate(' + (-fx) + 'px, ' + (-fy) + 'px); transition: transform ' + dur + 'ms ' + EASE + ';';
-
-    const vars = (sec) => '--ac:' + meta[sec].ac + '; --tint:' + meta[sec].tint + '; --tint2:' + meta[sec].tint2 + ';';
-    const rectCss = (r) => 'left:' + r.x + 'px; top:' + r.y + 'px; width:' + r.w + 'px; height:' + r.h + 'px;';
-    const posTr = 'transition: left ' + dur + 'ms ' + EASE + ', top ' + dur + 'ms ' + EASE + ', opacity 300ms ease;';
-    const lab = (group, long, short) => {
-      const g = Component.labelGroups()[group];
-      if (!g) throw new Error('bug: this should never happen — no label group ' + group);
-      return 'left:50%; top:50%; width:' + long + 'px; height:' + short + 'px; transform: translate(-50%, -50%) rotate(' + g.base + 'deg);';
-    };
-    const hoverIds = s.hover ? [s.hover.colId, s.hover.rowId] : [];
+    const vars = (i) => { const c = pal[i % pal.length]; return '--ac:' + c.ac + '; --tint:' + c.tint + '; --tint2:' + c.tint2 + ';'; };
+    const posTr = 'transition: ' + ['left', 'top', 'width', 'height', 'clip-path'].map((p) => p + ' ' + dur + 'ms ' + EASE).join(', ') + ', opacity 300ms ease;';
+    const centred = (sh, w, h, deg) => 'left:' + sh.cx + 'px; top:' + sh.cy + 'px; width:' + w + 'px; height:' + h + 'px; transform: translate(-50%, -50%) rotate(' + deg + 'deg);';
+    const dim = (i) => (focus !== null && focus !== i ? 0.55 : 1);
+    const hoverIds = s.hover ? s.hover.ids : [];
     const lockStyle = locked ? 'pointer-events:none;' : '';
 
-    const strips = order.reduce((all, sec) => {
-      const m = meta[sec];
-      const editing = s.focus === sec && !locked;
-      const dimmed = s.focus !== null && s.focus !== sec;
-      const canDelete = model.sections[sec].length > 1;
-      return all.concat(model.sections[sec].map((it, i) => {
-        const r = L.rect(sec, i);
-        const code = m.code + (i + 1);
-        const blank = it.text.trim() === '';
-        return {
-          style: vars(sec) + rectCss(r) + posTr + 'opacity:' + (dimmed ? 0.55 : 1) + ';' + lockStyle,
-          cls: (hoverIds.indexOf(it.id) >= 0 ? 'hl' : '') + (editing ? ' editing' : ''),
-          labStyle: m.cls === 'h' ? lab(sec, r.w, r.h) : lab(sec, r.h, r.w),
-          code: code,
-          text: it.text,
-          tip: it.id + (blank ? '' : ': ' + it.text),
-          shown: blank ? 'Untitled ' + m.noun : it.text,
-          txtCls: blank ? 'empty' : '',
-          ph: 'Describe this ' + m.noun + '…',
-          editing: editing,
-          viewing: !editing,
-          canDelete: canDelete,
-          aria: model.headings[sec] + ' ' + code + ' (' + it.id + ')',
-          delAria: 'Remove ' + code + ' (' + it.id + ')',
-          openAria: 'Edit ' + model.headings[sec] + ', ' + code + ': ' + (blank ? 'untitled' : it.text),
-          onText: (e) => { const v = e.target.value; this.applyModel((md) => Component.withText(md, sec, it.id, v), 'text:' + it.id); },
-          onDelete: () => this.applyModel((md) => Component.withRemoved(md, sec, it.id), null),
-          onOpen: () => this.focusOn(sec)
-        };
-      }));
-    }, []);
+    // Polygons first: they also frame the view.
+    const stripPolys = secs.reduce((all, sec, i) => all.concat(sec.items.map((it, j) => ({ i: i, j: j, it: it, poly: L.strip(i, j) }))), []);
+    const addPoly = focus !== null && !locked && secs[focus].items.length < Component.MAX ? L.strip(focus, secs[focus].items.length) : null;
+    const cellPolys = pairs.reduce((all, p) => all.concat(secs[p.a].items.reduce((acc, x, j) => acc.concat(secs[p.b].items.map((y, k) => ({ p: p, x: x, y: y, j: j, k: k, poly: L.cell(p.a, j, p.b, k) }))), [])), []);
+    const wedgePolys = L.ring.map((i) => ({ i: i, poly: L.wedge(i) }));
+    const tagPolys = secs.reduce((acc, sec, i) => (sec.attach === null ? acc : acc.concat([{ i: i, poly: L.tag(i) }])), []);
 
-    const adds = s.focus !== null && !locked && model.sections[s.focus].length < Component.MAX
-      ? [s.focus].map((sec) => {
-          const m = meta[sec];
-          const r = L.rect(sec, model.sections[sec].length);
-          return {
-            style: vars(sec) + rectCss(r),
-            labStyle: 'left:50%; top:50%; width:' + (m.cls === 'h' ? r.w : r.h) + 'px; height:' + (m.cls === 'h' ? r.h : r.w) + 'px; transform: translate(-50%, -50%) rotate(' + (-R) + 'deg);',
-            label: 'Add ' + m.noun,
-            onAdd: () => this.applyModel((md) => Component.withAdded(md, sec), null)
-          };
-        })
-      : [];
+    // Frame the focused section (its rows, grids and wedge or tag), or
+    // everything, in the rotated frame the stage is heading to.
+    const framed = []
+      .concat(stripPolys.map((x) => ({ on: [x.i], poly: x.poly })))
+      .concat(addPoly ? [{ on: [focus], poly: addPoly }] : [])
+      .concat(cellPolys.map((x) => ({ on: [x.p.a, x.p.b], poly: x.poly })))
+      .concat(wedgePolys.map((x) => ({ on: [x.i], poly: x.poly })))
+      .concat(tagPolys.map((x) => ({ on: [x.i], poly: x.poly })))
+      .filter((x) => focus === null || x.on.indexOf(focus) >= 0)
+      .reduce((acc, x) => acc.concat(x.poly), []);
+    const rad = R * Math.PI / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    const rx = framed.map((p) => p[0] * cos - p[1] * sin);
+    const ry = framed.map((p) => p[0] * sin + p[1] * cos);
+    const bx0 = Math.min.apply(null, rx);
+    const bx1 = Math.max.apply(null, rx);
+    const by0 = Math.min.apply(null, ry);
+    const by1 = Math.max.apply(null, ry);
+    const availW = Math.max(240, mw - 64);
+    const availH = Math.max(240, mh - TOP - BOT - 32);
+    const S = Math.min(availW / Math.max(1, bx1 - bx0), availH / Math.max(1, by1 - by0), focus !== null ? 1.8 : 1.4);
+    const cx = mw / 2;
+    const cy = TOP + 16 + availH / 2;
+    // Box centre, rotated back into stage coordinates.
+    const mx = (bx0 + bx1) / 2;
+    const my = (by0 + by1) / 2;
+    const fx = mx * cos + my * sin;
+    const fy = -mx * sin + my * cos;
+    const stageStyle = 'transform: translate(' + cx + 'px, ' + cy + 'px) scale(' + S + ') rotate(' + R + 'deg) translate(' + (-fx) + 'px, ' + (-fy) + 'px); transition: transform ' + dur + 'ms ' + EASE + ';';
 
-    const cells = Component.pairs().reduce((all, p) => {
-      const relevant = s.focus === null || p.col === s.focus || p.row === s.focus;
-      return all.concat(model.sections[p.col].reduce((acc, c, ci) => acc.concat(model.sections[p.row].map((rw, ri) => {
-        const k = Component.linkKey(p.key, c.id, rw.id);
-        const v = model.links[k] || 0;
-        const codeC = meta[p.col].code + (ci + 1);
-        const codeR = meta[p.row].code + (ri + 1);
-        const name = v === 0 ? 'none' : Component.markWord(p, v);
-        const cross = s.hover !== null && (s.hover.colId === c.id || s.hover.rowId === rw.id);
-        return {
-          style: 'left:' + L.colX(p.col, ci) + 'px; top:' + L.rowY(p.row, ri) + 'px; opacity:' + (relevant ? 1 : 0.3) + ';' + posTr + lockStyle,
-          cls: cross ? 'cross' : '',
-          dotCls: 'm' + v,
-          aria: p.owner
-            ? codeC + ' ' + c.text + ' on ' + codeR + ' ' + rw.text + ': ' + name
-            : codeR + ' × ' + codeC + ' (' + rw.text + ' × ' + c.text + '): ' + name,
-          onClick: () => this.applyModel((md) => Component.withToggled(md, p.key, c.id, rw.id), null),
-          onEnter: () => this.setState({ hover: { colId: c.id, rowId: rw.id } }),
-          onLeave: () => this.setState({ hover: null })
-        };
-      })), []));
-    }, []);
-
-    const C = L.C;
-    const triDefs = [
-      { sec: 'strategic', clip: 'polygon(2.8% 100%, 97.2% 100%, 50% 52.8%)', x: C / 2, y: C - 58 },
-      { sec: 'annual', clip: 'polygon(0% 2.8%, 0% 97.2%, 47.2% 50%)', x: 58, y: C / 2 },
-      { sec: 'priorities', clip: 'polygon(2.8% 0%, 97.2% 0%, 50% 47.2%)', x: C / 2, y: 58 },
-      { sec: 'targets', clip: 'polygon(100% 2.8%, 100% 97.2%, 52.8% 50%)', x: C - 58, y: C / 2 }
-    ];
-    const tris = triDefs.map((t) => {
-      const m = meta[t.sec];
-      const on = s.focus === t.sec;
-      const count = model.sections[t.sec].length;
+    const strips = stripPolys.map((x) => {
+      const sec = secs[x.i];
+      const it = x.it;
+      const sh = Component.shapeCss(x.poly);
+      const editing = focus === x.i && !locked;
+      const code = codes[x.i] + (x.j + 1);
+      const blank = it.text.trim() === '';
       return {
-        style: vars(t.sec) + 'left:' + (-C / 2) + 'px; top:' + (-C / 2) + 'px; width:' + C + 'px; height:' + C + 'px; clip-path:' + t.clip + '; opacity:' + (s.focus !== null && !on ? 0.55 : 1) + ';',
-        cls: on ? 'on' : '',
-        labStyle: 'left:' + t.x + 'px; top:' + t.y + 'px; width:170px; height:70px; transform: translate(-50%, -50%) rotate(' + Component.labelGroups()[t.sec].base + 'deg);',
-        eyebrow: model.labels[t.sec],
-        title: model.headings[t.sec],
-        count: count + ' ' + (count === 1 ? m.noun : m.plural),
-        aria: on ? 'Show full matrix' : 'Rotate to ' + model.headings[t.sec],
-        onClick: on ? () => this.showAll() : () => this.focusOn(t.sec)
+        style: vars(x.i) + sh.css + posTr + 'opacity:' + dim(x.i) + ';' + lockStyle,
+        cls: (hoverIds.indexOf(it.id) >= 0 ? 'hl' : '') + (editing ? ' editing' : ''),
+        labStyle: centred(sh, L.stripLen(x.i, x.j, x.poly), L.T, L.angles[x.i]),
+        code: code,
+        text: it.text,
+        tip: it.id + (blank ? '' : ': ' + it.text),
+        shown: blank ? 'Untitled item' : it.text,
+        txtCls: blank ? 'empty' : '',
+        ph: 'Describe this item…',
+        editing: editing,
+        viewing: !editing,
+        canDelete: sec.items.length > 1,
+        aria: sec.title + ' ' + code + ' (' + it.id + ')',
+        delAria: 'Remove ' + code + ' (' + it.id + ')',
+        openAria: 'Edit ' + sec.title + ', ' + code + ': ' + (blank ? 'untitled' : it.text),
+        onText: (e) => { const v = e.target.value; this.applyModel((md) => Component.withText(md, x.i, it.id, v), 'text:' + it.id); },
+        onDelete: () => this.applyModel((md) => Component.withRemoved(md, x.i, it.id), null),
+        onOpen: () => this.focusOn(x.i)
       };
     });
 
-    const oW = model.sections.owners.length * L.T;
-    const ownersTag = {
-      style: vars('owners') + 'left:' + L.ownersX0 + 'px; top:' + (C / 2 + 8) + 'px; width:' + oW + 'px; height:30px;' + posTr + 'opacity:' + (s.focus !== null && s.focus !== 'owners' ? 0.55 : 1) + ';',
-      labStyle: lab('ownersTag', oW, 30),
-      label: model.headings.owners,
-      onClick: () => this.focusOn('owners')
-    };
+    const adds = addPoly === null ? [] : [Component.shapeCss(addPoly)].map((sh) => ({
+      style: vars(focus) + sh.css,
+      labStyle: centred(sh, L.stripLen(focus, secs[focus].items.length, addPoly), L.T, -R),
+      label: 'Add item',
+      onAdd: () => this.applyModel((md) => Component.withAdded(md, focus), null)
+    }));
 
-    const navItems = [{ label: 'Full matrix', cls: s.focus === null ? 'on' : '', color: '#16181D', go: () => this.showAll() }]
-      .concat(order.map((sec) => ({ label: model.headings[sec], cls: s.focus === sec ? 'on' : '', color: meta[sec].ac, go: () => this.focusOn(sec) })));
+    const cells = cellPolys.map((x) => {
+      const v = model.links[Component.linkKey(x.x.id, x.y.id)] || 0;
+      const codeA = codes[x.p.a] + (x.j + 1);
+      const codeB = codes[x.p.b] + (x.k + 1);
+      const name = v === 0 ? 'none' : Component.markWord(x.p, v);
+      const relevant = focus === null || x.p.a === focus || x.p.b === focus;
+      return {
+        style: Component.shapeCss(x.poly).css + 'opacity:' + (relevant ? 1 : 0.3) + ';' + posTr + lockStyle,
+        cls: hoverIds.indexOf(x.x.id) >= 0 || hoverIds.indexOf(x.y.id) >= 0 ? 'cross' : '',
+        dotCls: 'm' + v,
+        aria: x.p.attached
+          ? codeA + ' ' + x.x.text + ' on ' + codeB + ' ' + x.y.text + ': ' + name
+          : codeA + ' × ' + codeB + ' (' + x.x.text + ' × ' + x.y.text + '): ' + name,
+        onClick: () => this.applyModel((md) => Component.withToggled(md, x.x.id, x.y.id), null),
+        onEnter: () => this.setState({ hover: { ids: [x.x.id, x.y.id] } }),
+        onLeave: () => this.setState({ hover: null })
+      };
+    });
 
-    const cap = s.focus !== null
+    const tris = wedgePolys.map((x) => {
+      const sec = secs[x.i];
+      const sh = Component.shapeCss(x.poly);
+      const on = focus === x.i;
+      const count = sec.items.length;
+      return {
+        style: vars(x.i) + sh.css + 'opacity:' + dim(x.i) + ';',
+        cls: on ? 'on' : '',
+        labStyle: centred(sh, 170, 70, L.angles[x.i]),
+        eyebrow: sec.label,
+        title: sec.title,
+        count: count + ' ' + (count === 1 ? 'item' : 'items'),
+        aria: on ? 'Show full matrix' : 'Rotate to ' + sec.title,
+        onClick: on ? () => this.showAll() : () => this.focusOn(x.i)
+      };
+    });
+
+    const tags = tagPolys.map((x) => {
+      const sh = Component.shapeCss(x.poly);
+      return {
+        style: vars(x.i) + sh.css + posTr + 'opacity:' + dim(x.i) + ';',
+        labStyle: centred(sh, Math.max(3, secs[x.i].items.length) * L.T, 30, L.tagAngle(x.i)),
+        label: secs[x.i].title,
+        onClick: () => this.focusOn(x.i)
+      };
+    });
+
+    const navItems = [{ label: 'Full matrix', cls: focus === null ? 'on' : '', color: '#16181D', go: () => this.showAll() }]
+      .concat(secs.map((sec, i) => ({ label: sec.title, cls: focus === i ? 'on' : '', color: pal[i % pal.length].ac, go: () => this.focusOn(i) })));
+
+    const cap = focus !== null
       ? (() => {
-          const m = meta[s.focus];
-          const nx = order[(order.indexOf(s.focus) + 1) % order.length];
-          return { style: 'color:' + m.ac + ';', eyebrow: model.labels[s.focus], title: model.headings[s.focus], hint: m.hint, nextLabel: model.headings[nx], next: () => this.focusOn(nx) };
+          const sec = secs[focus];
+          const nx = (focus + 1) % secs.length;
+          const meets = pairs.filter((p) => p.a === focus || p.b === focus).map((p) => secs[p.a === focus ? p.b : p.a].title);
+          const hint = sec.attach !== null ? 'Attached to ' + secs[sec.attach].title + '.'
+            : meets.length === 0 ? 'A single list.' : 'Meets ' + meets.join(' and ') + '.';
+          return { style: 'color:' + pal[focus % pal.length].ac + ';', eyebrow: sec.label, title: sec.title, hint: hint, nextLabel: secs[nx].title, next: () => this.focusOn(nx) };
         })()
       : { style: '', eyebrow: '', title: '', hint: '', nextLabel: '', next: () => { throw new Error('bug: this should never happen — next() in overview'); } };
 
@@ -1002,18 +1186,19 @@ class Component extends DCLogic {
       strips: strips,
       adds: adds,
       cells: cells,
-      ownersTag: ownersTag,
+      tags: tags,
+      hub: L.ring.length >= 3,
       navItems: navItems,
       viewMenu: s.viewMenu,
       viewMenuStr: s.viewMenu ? 'true' : 'false',
-      viewLabel: s.focus === null ? 'Full matrix' : model.headings[s.focus],
-      viewColor: s.focus === null ? '#16181D' : meta[s.focus].ac,
+      viewLabel: focus === null ? 'Full matrix' : secs[focus].title,
+      viewColor: focus === null ? '#16181D' : pal[focus % pal.length].ac,
       toggleViewMenu: () => this.setState((st) => ({ viewMenu: !st.viewMenu })),
       closeViewMenu: () => this.setState({ viewMenu: false }),
       onMenuKey: (e) => { if (e.key === 'Escape') this.setState({ viewMenu: false }); },
       cap: cap,
-      isFocus: s.focus !== null,
-      isOverview: s.focus === null,
+      isFocus: focus !== null,
+      isOverview: focus === null,
       title: model.title,
       onTitle: (e) => { const v = e.target.value; if (!locked) this.applyModel((md) => Object.assign({}, md, { title: v }), 'title'); },
       canUndo: s.history.past.length > 0,
@@ -1034,7 +1219,55 @@ class Component extends DCLogic {
       errMessage: locked ? s.error.message : '',
       copyLabel: s.copied === true ? 'Copied' : s.copied === 'failed' ? 'Copy failed: select the text instead' : 'Copy',
       onCopy: () => this.copyMd(),
-      onDownload: () => this.downloadMd()
+      onDownload: () => this.downloadMd(),
+      openCreate: () => this.setState({ draft: Component.defaultDraft(), viewMenu: false }),
+      cancelCreate: () => this.setState({ draft: null }),
+      stopClick: (e) => e.stopPropagation(),
+      onCreateKey: (e) => { if (e.key === 'Escape') this.setState({ draft: null }); },
+      onCreate: () => this.createFromDraft(),
+      createOpen: s.draft !== null,
+      createTitle: s.draft ? s.draft.title : '',
+      onCreateTitle: (e) => { const v = e.target.value; this.editDraft((d) => Object.assign({}, d, { title: v })); },
+      createShape: s.draft ? (() => {
+        const n = s.draft.rows.filter((r, i) => !r.attached || i === 0).length;
+        return n + ' unattached → ' + (['', 'a list', 'a table', 'a triangle', 'an X-matrix'][n] || 'a ' + n + '-pointed star') + '.';
+      })() : '',
+      createRows: s.draft ? s.draft.rows.map((r, i) => {
+        const setRows = (fn) => this.editDraft((d) => Object.assign({}, d, { rows: fn(d.rows) }));
+        const move = (to) => setRows((rows) => Component.moveRow(rows, rows.findIndex((x) => x.key === r.key), to));
+        const name = r.name.trim() || 'section ' + (i + 1);
+        return {
+          name: r.name,
+          attached: r.attached && i > 0,
+          first: i === 0,
+          style: s.dropKey === r.key && this.dragKey !== r.key ? 'box-shadow: 0 -2px 0 #3346D3;' : '',
+          aria: 'Section ' + (i + 1) + ' name',
+          gripAria: 'Move ' + name + ' (position ' + (i + 1) + ' of ' + s.draft.rows.length + ')',
+          delAria: 'Remove ' + name,
+          cantRemove: s.draft.rows.length <= 1,
+          onName: (e) => { const v = e.target.value; setRows((rows) => rows.map((x) => (x.key === r.key ? Object.assign({}, x, { name: v }) : x))); },
+          onAttached: (e) => { const v = e.target.checked; setRows((rows) => rows.map((x) => (x.key === r.key ? Object.assign({}, x, { attached: v }) : x))); },
+          onRemove: () => setRows((rows) => Component.moveRow(rows.filter((x) => x.key !== r.key), 0, 0)),
+          // Native drag and drop: the grip is the handle, any row a drop target.
+          onDragStart: (e) => { this.dragKey = r.key; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', name); e.dataTransfer.setDragImage(e.currentTarget.parentNode, 12, 20); },
+          onDragOver: (e) => { if (this.dragKey === null) return; e.preventDefault(); if (s.dropKey !== r.key) this.setState({ dropKey: r.key }); },
+          onDrop: (e) => { e.preventDefault(); const k = this.dragKey; this.dragKey = null; this.setState({ dropKey: null }); if (k !== null && k !== r.key) setRows((rows) => Component.moveRow(rows, rows.findIndex((x) => x.key === k), i)); },
+          onDragEnd: () => { this.dragKey = null; this.setState({ dropKey: null }); },
+          onGripKey: (e) => {
+            const to = e.key === 'ArrowUp' ? i - 1 : e.key === 'ArrowDown' ? i + 1 : -1;
+            if (to < 0 || to >= s.draft.rows.length) return;
+            e.preventDefault();
+            const grip = e.currentTarget;
+            move(to);
+            // Keep focus on the moved row's grip (React reuses nodes by index).
+            setTimeout(() => { const g = grip.closest('[role=dialog]').querySelectorAll('.grip')[to]; if (g) g.focus(); }, 0);
+          }
+        };
+      }) : [],
+      cantAddRow: !s.draft || s.draft.rows.length >= Component.MAX_SECTIONS,
+      onAddRow: () => this.editDraft((d) => Object.assign({}, d, { rows: d.rows.concat([{ key: d.nextKey, name: 'Section ' + (d.rows.length + 1), attached: false }]), nextKey: d.nextKey + 1 })),
+      createErr: s.draft !== null && s.draft.error !== null,
+      createErrMessage: s.draft && s.draft.error ? s.draft.error : ''
     };
   }
 }

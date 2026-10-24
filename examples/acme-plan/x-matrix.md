@@ -19,7 +19,7 @@
 - defect-rate: Defect rate < 1.5%
 - dealer-count: 25 dealers signed
 
-## Owners: Resources
+## Owners > Top-level priorities: Resources
 - wile: Wile E. Coyote
 - road: R. Runner
 
