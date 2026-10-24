@@ -264,7 +264,7 @@ class Component extends DCLogic {
       rot: focus === null ? 0 : Component.meta()[focus].angle,
       hover: null,
       viewMenu: false,
-      panelOpen: true,
+      panelOpen: new URLSearchParams(location.search).has('markdown'),
       copied: false,
       vw: 1440,
       vh: 900
@@ -780,9 +780,21 @@ class Component extends DCLogic {
   }
 
   static viewToUrl(sec) {
+    Component.setUrlParam('view', sec === null ? null : Component.meta()[sec].nav.toLowerCase());
+  }
+
+  // null removes the param. Rewrites the URL in place (no history entry).
+  static setUrlParam(name, value) {
     const u = new URL(location.href);
-    if (sec === null) u.searchParams.delete('view'); else u.searchParams.set('view', Component.meta()[sec].nav.toLowerCase());
+    if (value === null) u.searchParams.delete(name); else u.searchParams.set(name, value);
     history.replaceState(null, '', u);
+  }
+
+  // ?markdown (any value) shows the markdown panel; absent = hidden.
+  togglePanel() {
+    const open = !this.state.panelOpen;
+    Component.setUrlParam('markdown', open ? '1' : null);
+    this.setState({ panelOpen: open });
   }
 
   focusOn(sec) {
@@ -1013,7 +1025,7 @@ class Component extends DCLogic {
       panelOpen: s.panelOpen,
       panelOpenStr: s.panelOpen ? 'true' : 'false',
       mdBtnCls: s.panelOpen ? 'on' : '',
-      togglePanel: () => this.setState((st) => ({ panelOpen: !st.panelOpen })),
+      togglePanel: () => this.togglePanel(),
       md: s.md,
       onMd: (e) => this.onMdChange(e.target.value),
       mdOk: !locked,

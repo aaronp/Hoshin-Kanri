@@ -33,6 +33,10 @@ Load any markdown with `?src=<url>` (absolute, or relative to the page), e.g.
 `https://aaronp.github.io/Hoshin-Kanri/?src=examples/acme-plan/x-matrix.md`.
 The source must allow CORS (GitHub Pages and raw.githubusercontent.com do).
 
+Other params (kept in sync as you click, so the URL is always shareable):
+`view=breakthrough|annual|priorities|targets|owners` (absent = full matrix)
+and `markdown` (present = show the Markdown panel).
+
 ## Publishing your own X-Matrix
 
 Your plan lives in its own data-only repo (just `x-matrix.md` plus a Pages
