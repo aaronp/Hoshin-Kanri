@@ -2,9 +2,10 @@
 <meta charset="utf-8">
 <title>Acme X-Matrix</title>
 <script>
-  // Viewer lives in its own repo; this repo only holds the data.
+  // The viewer lives in its own repo; this repo only holds the data.
+  // Extra query params are passed through (e.g. ?view=top-level-priorities).
   const VIEWER = 'https://aaronp.github.io/Hoshin-Kanri/';
   const src = new URL('x-matrix.md', location.href).href;
-  location.replace(VIEWER + '?src=' + encodeURIComponent(src));
+  location.replace(VIEWER + '?src=' + encodeURIComponent(src) + location.search.replace(/^\?/, '&') + location.hash);
 </script>
 <a href="x-matrix.md">x-matrix.md</a>

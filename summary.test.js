@@ -111,4 +111,18 @@ assert.strictEqual(custom.sections[0].items[0].id, 'recurring-revenue');
 // Bad attributes fail with a line number.
 assert.ok(!C.parseMd(seed.replace('## Targets to improve: Metrics\n', '## Targets to improve: Metrics\ncolor: blue\n')).ok);
 assert.ok(!C.parseMd(seed.replace('## Targets to improve: Metrics\n', '## Targets to improve: Metrics\nslug: Not A Slug\n')).ok);
-console.log('ok');
+
+// Share links: #md=<deflate-raw, base64url>. Round-trips (incl. non-ASCII),
+// is URL-safe, and is plain zlib deflate-raw, so any tool can decode it.
+(async () => {
+  const zlib = require('zlib');
+  const md = C.serializeMd(meta);
+  const packed = await C.packMd(md);
+  assert.match(packed, /^[A-Za-z0-9_-]+$/);
+  assert.strictEqual(await C.unpackMd(packed), md);
+  assert.strictEqual(zlib.inflateRawSync(Buffer.from(packed, 'base64url')).toString(), md);
+  const acme = require('fs').readFileSync(__dirname + '/examples/acme-plan/x-matrix.md', 'utf8');
+  assert.ok((await C.packMd(acme)).length < 1500, 'a typical plan makes a short link');
+  await assert.rejects(C.unpackMd(packed.slice(0, 40)), 'a cut-short link fails rather than half-loading');
+  console.log('ok');
+})().catch((e) => { console.error(e); process.exit(1); });

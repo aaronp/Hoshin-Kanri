@@ -87,7 +87,7 @@
 
   function copy(btn, text) {
     const was = btn.textContent;
-    navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = was; }, 1200); });
+    C.copyText(text).then(() => { btn.textContent = 'Copied ✓'; }, () => { btn.textContent = 'Copy failed: select the text below'; }).then(() => setTimeout(() => { btn.textContent = was; }, 1600));
   }
 
   const fetchText = (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(url + ': HTTP ' + r.status); return r.text(); });

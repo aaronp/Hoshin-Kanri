@@ -20,7 +20,7 @@ rather than copy wholesale.
 
 ## Viewing
 
-`make dev` serves the folder on http://localhost:8000; some browsers block
+`make dev` serves the folder with Bun on http://localhost:8000; some browsers block
 the scripts over file://.
 
 ## Hosting & external data
@@ -29,7 +29,17 @@ Served on GitHub Pages by `.github/workflows/pages.yml` on pushes to `master`
 (Settings → Pages → Source: **GitHub Actions**; the `github-pages` environment
 must allow `master`). `.md` files are served raw, without Jekyll.
 
-Load any markdown with `?src=<url>` (absolute, or relative to the page), e.g.
+**Open** in the title bar loads an X-Matrix from a dropped or chosen `.md`
+file, or from a URL (which then becomes `?src=`, so the page is shareable).
+**Share** (the icon next to Markdown) copies a link, or downloads the file:
+
+- **Copy link** puts the whole X-Matrix in the link (`#md=`, raw deflate then
+  base64url): a snapshot, about 1 KB for a typical plan. Past 8,000
+  characters it warns that some mail and chat apps cut long links.
+- **Copy link to file** (when opened with `?src=`) always shows the latest
+  saved file.
+
+Or load any markdown with `?src=<url>` (absolute, or relative to the page), e.g.
 `https://aaronp.github.io/Hoshin-Kanri/?src=examples/acme-plan/x-matrix.md`.
 The source must allow CORS (GitHub Pages and raw.githubusercontent.com do).
 

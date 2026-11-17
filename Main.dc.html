@@ -89,6 +89,10 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 .att{flex:0 0 auto;display:flex;align-items:center;gap:6px;font:500 13px/1 Inter,system-ui,sans-serif;color:#3A404A;cursor:pointer}
 .att:has(input:disabled){opacity:.4;cursor:default}
 .del:disabled{opacity:.35;cursor:default;background:transparent;color:#6B7280}
+.share-item{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;padding:9px 10px;border:0;border-radius:8px;background:transparent;text-align:left;cursor:pointer;font:600 13px/1.2 Inter,system-ui,sans-serif;color:#16181D}
+.share-item:hover{background:#F3F4F6}
+.share-item:disabled{cursor:default;background:transparent;color:#6B7280}
+.share-item .d{font-weight:400;font-size:12px;line-height:1.35;color:#555C68}
 </style>
 </helmet>
 <div ref="{{ setVp }}" style="position: relative; width: 100%; height: 100vh; min-height: 640px; overflow: hidden; background-color: #F3F4F6; font-family: Inter, system-ui, sans-serif; color: #16181D">
@@ -192,14 +196,37 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 </div>
 </sc-if>
 </nav>
+<button class="btn sm" onClick="{{ showOpen }}">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 4.5v8a1 1 0 001 1h11a1 1 0 001-1V6a1 1 0 00-1-1H8L6.5 3h-4a1 1 0 00-1 1z"></path></svg>
+Open
+</button>
 <button class="btn sm" onClick="{{ openCreate }}">
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
 Create
 </button>
-<button class="btn sm" title="Download the markdown, stamped with what you changed" onClick="{{ onDownload }}">
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"></path></svg>
-Download
+<div style="position: relative" onKeyDown="{{ onShareKey }}">
+<button class="icon-btn" style="width: 40px; height: 40px" aria-label="Share" title="Share: copy a link or download the file" aria-haspopup="true" aria-expanded="{{ shareOpenStr }}" onClick="{{ toggleShare }}">
+<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="4" r="2"></circle><circle cx="4.5" cy="9" r="2"></circle><circle cx="13.5" cy="14" r="2"></circle><path d="M6.3 8l5.4-3M6.3 10l5.4 3"></path></svg>
 </button>
+<sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position: fixed; inset: 0; z-index: 4" onClick="{{ closeShare }}"></div>
+<div role="menu" aria-label="Share" style="position: absolute; top: calc(100% + 6px); right: 0; z-index: 5; width: 320px; max-width: calc(100vw - 32px); box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; padding: 6px; background-color: #FFFFFF; border: 1px solid #DADDE3; border-radius: 10px; box-shadow: 0 8px 24px rgba(16,24,40,0.12)">
+<button class="share-item" role="menuitem" disabled="{{ snapDisabled }}" onClick="{{ onCopySnap }}">{{ snapLabel }}<span class="d">{{ snapDesc }}</span></button>
+<sc-if value="{{ shareWarn }}" hint-placeholder-val="{{ false }}">
+<div role="note" style="margin: 0 4px 4px; padding: 8px 10px; border-radius: 8px; background-color: #FEF6E7; color: #7A4B00; font-size: 12px; line-height: 1.4">⚠️ {{ shareWarnText }}</div>
+</sc-if>
+<sc-if value="{{ hasSrc }}" hint-placeholder-val="{{ false }}">
+<button class="share-item" role="menuitem" onClick="{{ onCopySrc }}">{{ srcLabel }}<span class="d">{{ srcDesc }}</span></button>
+</sc-if>
+<button class="share-item" role="menuitem" onClick="{{ onShareDownload }}">Download file<span class="d">The markdown, stamped with what you changed. Keep it in git, or host it and share it with ?src=.</span></button>
+<sc-if value="{{ shareErr }}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="margin: 4px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #7A1610">{{ shareErrText }}
+<input class="field" style="height: 32px; font: 500 11.5px/1 'IBM Plex Mono', ui-monospace, monospace" type="text" readonly value="{{ shareFallback }}" aria-label="Link to copy" onFocus="{{ selectAll }}">
+</div>
+</sc-if>
+</div>
+</sc-if>
+</div>
 <button class="btn sm {{ mdBtnCls }}" aria-pressed="{{ panelOpenStr }}" onClick="{{ togglePanel }}">
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="3" width="13" height="10" rx="1.5"></rect><path d="M4 10.5V5.5l2 2.5 2-2.5v5M11 5.5v5M9.5 9l1.5 1.5L12.5 9"></path></svg>
 Markdown
@@ -262,8 +289,13 @@ Next: {{ cap.nextLabel }}
 </sc-if>
 <sc-if value="{{ det.some }}" hint-placeholder-val="{{ true }}">
 <div style="display: flex; flex-direction: column; gap: 8px">
-<div style="font: 600 10px/1.2 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: {{ det.color }}">{{ det.eyebrow }}</div>
-<div style="font-size: 15px; font-weight: 650; color: #16181D">{{ det.title }}</div>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: #555C68">Title
+<input class="field" style="height: 36px; font-size: 15px; font-weight: 650; {{ det.titleStyle }}" type="text" value="{{ det.titleText }}" disabled="{{ det.locked }}" onChange="{{ det.onTitle }}" onBlur="{{ det.onTitleBlur }}" title="{{ det.titleTip }}">
+</label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; font-weight: 600; color: #555C68">Sub-text
+<input class="field" style="height: 32px; font: 600 11px/1 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: {{ det.color }}" type="text" value="{{ det.label }}" placeholder="e.g. 3–5 year" disabled="{{ det.locked }}" onChange="{{ det.onLabel }}">
+</label>
+<div style="font-size: 11.5px; font-weight: 600; color: #555C68">Colour and short name (for badges)</div>
 <div style="display: flex; gap: 8px; align-items: center">
 <input type="color" value="{{ det.color }}" disabled="{{ det.locked }}" onChange="{{ det.onColor }}" aria-label="Section colour" title="Section colour" style="flex: 0 0 auto; width: 40px; height: 34px; padding: 2px; border: 1px solid #D5D9E0; border-radius: 8px; background-color: #fff; cursor: pointer">
 <input class="field" style="flex: 1 1 auto; height: 34px; font: 500 12.5px/1 'IBM Plex Mono', ui-monospace, monospace" type="text" value="{{ det.slug }}" placeholder="{{ det.slugPh }}" disabled="{{ det.locked }}" onChange="{{ det.onSlug }}" aria-label="Section short name, used on badges" title="Short name, used on badges">
@@ -322,6 +354,35 @@ Next: {{ cap.nextLabel }}
 <div>Items: <code class="k">- slug: Title</code> · Links: <code class="k">- from -&gt; to: strong | supporting</code> (owners: <code class="k">leads | supports</code>)</div>
 </div>
 </aside>
+</sc-if>
+
+<sc-if value="{{ openOpen }}" hint-placeholder-val="{{ false }}">
+<div style="position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; padding: 16px; background-color: rgba(16,24,40,0.35)" onClick="{{ hideOpen }}">
+<div role="dialog" aria-modal="true" aria-labelledby="xm-open-h" style="box-sizing: border-box; width: 100%; max-width: 560px; max-height: 100%; overflow: auto; display: flex; flex-direction: column; gap: 14px; padding: 20px; background-color: #FFFFFF; border-radius: 14px; box-shadow: 0 24px 48px rgba(16,24,40,0.18)" onClick="{{ stopClick }}" onKeyDown="{{ onOpenKey }}">
+<div style="display: flex; align-items: center; gap: 10px">
+<div id="xm-open-h" style="flex: 1 1 auto; font-size: 16px; font-weight: 650; color: #16181D">Open an X-Matrix</div>
+<button class="icon-btn" aria-label="Close" onClick="{{ hideOpen }}">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+</button>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 14px; min-height: 130px; padding: 20px; box-sizing: border-box; border: 2px dashed {{ dropBorder }}; border-radius: 12px; background-color: {{ dropBg }}; color: #555C68; text-align: center; font-size: 13.5px" onDragOver="{{ onDropOver }}" onDragLeave="{{ onDropLeave }}" onDrop="{{ onDropFile }}">
+<svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 14V3.5M6.5 8L11 3.5 15.5 8M3.5 14.5v3a1 1 0 001 1h13a1 1 0 001-1v-3"></path></svg>
+<span>Drop a .md file here, or</span>
+<label class="btn sm" style="cursor: pointer">Choose file…<input type="file" accept=".md,.markdown,.txt,text/markdown,text/plain" aria-label="Choose a markdown file" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)" onChange="{{ onPickFile }}"></label>
+</div>
+<form style="display: flex; flex-direction: column; gap: 6px" onSubmit="{{ onOpenUrl }}">
+<label for="xm-open-url" style="font-size: 12.5px; font-weight: 600; color: #3A404A">Or open from a URL</label>
+<div style="display: flex; gap: 8px">
+<input id="xm-open-url" class="field" style="flex: 1 1 auto; font: 500 12.5px/1 'IBM Plex Mono', ui-monospace, monospace" type="text" inputmode="url" placeholder="https://…/x-matrix.md" value="{{ openUrl }}" onChange="{{ onOpenUrlText }}">
+<button class="btn sm pri" type="submit" disabled="{{ openUrlDisabled }}">{{ openUrlLabel }}</button>
+</div>
+<span style="font-size: 12px; color: #555C68">Opening a URL puts it in the address bar as <code class="k">?src=</code>, so the page can be shared and Download saves under its name. A local file has no link: download it and host it to share.</span>
+</form>
+<sc-if value="{{ openErr }}" hint-placeholder-val="{{ false }}">
+<div role="alert" style="padding: 10px 12px; border-radius: 8px; background-color: #FDECEC; color: #7A1610; font-size: 12.5px; line-height: 1.45">{{ openErrMessage }}</div>
+</sc-if>
+</div>
+</div>
 </sc-if>
 
 <sc-if value="{{ createOpen }}" hint-placeholder-val="{{ false }}">
@@ -383,12 +444,16 @@ class Component extends DCLogic {
       dropKey: null,
       slugDraft: null, // { id, text } while an item's slug field holds an invalid / duplicate value
       sel: null, // { sec, j }: the item last focused, shown in the details drawer
+      titleDraft: null, // { sec, text } while the drawer's title field holds an unusable title
       // The user's pan / zoom on top of the automatic framing; reset when the
       // framed section changes. `moving` = follow the pointer, no easing.
       pan: { k: 1, dx: 0, dy: 0, moving: false },
       headH: 68,
       footH: 84,
-      newItem: null // id of an item just added: focus it and pan it into view
+      newItem: null, // id of an item just added: focus it and pan it into view
+      open: null, // the Open dialog: { url, busy, error, drag }
+      fileName: null, // name of a file opened from disk, for Download
+      share: null // the Share menu: { link (snapshot, null while packing), copied: 'snap' | 'src' | null, error, fallback }
     }, Component.viewFromUrl(parsed.model));
     this.ro = null;
     this.copyTimer = null;
@@ -461,18 +526,117 @@ class Component extends DCLogic {
   // ?src=<url> loads the markdown from elsewhere (absolute, or relative to
   // this page). The source must allow CORS; GitHub Pages and raw.githubusercontent do.
   componentDidMount() {
+    // #md=<payload>: a shared snapshot, carried in the link itself.
+    const packed = /^#md=([A-Za-z0-9_-]+)$/.exec(location.hash);
+    if (packed) {
+      Component.unpackMd(packed[1])
+        .then((text) => {
+          const r = Component.parseMd(text);
+          this.setState(r.ok
+            ? Object.assign({ md: text, model: r.model, base: r.model, error: null, history: Component.emptyHistory() }, Component.viewFromUrl(r.model))
+            : { md: text, error: r.error, panelOpen: true, history: Component.emptyHistory() });
+        })
+        .catch(() => this.setState({ error: { line: 1, message: 'The X-Matrix in this link could not be read (was the link cut short?). Showing the built-in example.' } }));
+      return;
+    }
     const src = new URLSearchParams(location.search).get('src');
     if (!src) return;
-    fetch(new URL(src, location.href))
-      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    Component.fetchMd(src)
       .then((text) => {
         const r = Component.parseMd(text);
         this.setState(r.ok
           ? Object.assign({ md: text, model: r.model, base: r.model, error: null, history: Component.emptyHistory() }, Component.viewFromUrl(r.model))
           : { md: text, error: r.error, history: Component.emptyHistory() });
       })
-      .catch((e) => this.setState({ error: { line: 1, message: 'Could not load ' + src + ' (' + e.message + '). Showing the built-in example.' } }));
+      .catch((e) => this.setState({ error: { line: 1, message: e.message + ' Showing the built-in example.' } }));
   }
+
+  // Markdown <-> link payload: raw deflate, then base64url (no padding).
+  static packMd(md) {
+    const z = new Blob([md]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    return new Response(z).arrayBuffer().then((buf) => {
+      const bytes = new Uint8Array(buf);
+      let bin = '';
+      for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+      return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    });
+  }
+
+  static unpackMd(payload) {
+    const bin = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+    const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+    return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+  }
+
+  // Above this, some mail / chat apps cut links short.
+  static get LONG_LINK() { return 8000; }
+
+  // What Download (and a snapshot link) would hold.
+  savedMd() {
+    const s = this.state;
+    return s.error ? s.md : Component.serializeMd(Component.stamped(s.model, s.base, Component.today()));
+  }
+
+  // Opening the menu packs the snapshot, so a click only has to copy (Safari
+  // refuses clipboard writes after an await).
+  toggleShare() {
+    if (this.state.share !== null) { this.setState({ share: null }); return; }
+    this.setState({ share: { link: null, copied: null, error: null, fallback: '' }, viewMenu: false });
+    Component.packMd(this.savedMd()).then((p) => {
+      const u = new URL(location.pathname, location.href);
+      const view = new URLSearchParams(location.search).get('view');
+      if (view) u.searchParams.set('view', view);
+      this.editShare({ link: u.href + '#md=' + p });
+    }, (e) => this.editShare({ error: 'Could not make a link: ' + e.message }));
+  }
+
+  editShare(patch) { this.setState((s) => (s.share === null ? {} : { share: Object.assign({}, s.share, patch) })); }
+
+  copyLink(link, which) {
+    Component.copyText(link).then(
+      () => { this.editShare({ copied: which, error: null }); if (this.copyTimer) clearTimeout(this.copyTimer); this.copyTimer = setTimeout(() => this.editShare({ copied: null }), 1600); },
+      (e) => this.editShare({ error: 'Couldn’t copy (' + e.message + '). Select the link and copy it:', fallback: link }));
+  }
+
+  // Fetches markdown (absolute, or relative to this page). Rejects with a message fit to show.
+  static fetchMd(src) {
+    return fetch(new URL(src, location.href))
+      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .catch((e) => { throw new Error('Could not open ' + src + ' (' + e.message + '). A URL on another site must allow cross-origin requests (GitHub Pages and raw.githubusercontent.com do).'); });
+  }
+
+  // ---------- Open dialog: drop / choose a file, or fetch a URL ----------
+  // Replaces the document (undoable). A file that doesn't parse still opens,
+  // in the markdown panel with its error, like hand-edited markdown.
+  loadMd(text, opts) {
+    const r = Component.parseMd(text);
+    Component.clearHash();
+    Component.setUrlParam('src', opts.src);
+    Component.setUrlParam('view', null);
+    if (!r.ok) Component.setUrlParam('markdown', '1');
+    const now = Date.now();
+    this.setState((s) => Object.assign({
+      open: null, fileName: opts.fileName, hover: null, sel: null, slugDraft: null,
+      history: Component.commit(s.history, Component.snapshot(s), null, now)
+    }, r.ok
+      ? { model: r.model, base: r.model, md: text, error: null, focus: null, rot: Component.nearest(0, s.rot), pan: Component.NO_PAN }
+      : { md: text, error: r.error, panelOpen: true }));
+  }
+
+  openFile(file) {
+    if (!file) { this.editOpen({ error: 'Drop or choose a .md file.' }); return; }
+    if (!/\.(md|markdown|txt)$/i.test(file.name)) { this.editOpen({ error: '"' + file.name + '" is not a markdown file (.md).' }); return; }
+    file.text().then((text) => this.loadMd(text, { src: null, fileName: file.name }), (e) => this.editOpen({ error: 'Could not read ' + file.name + ': ' + e.message }));
+  }
+
+  openUrl() {
+    const url = this.state.open.url.trim();
+    if (url === '' || this.state.open.busy) return;
+    this.editOpen({ busy: true, error: null });
+    Component.fetchMd(url).then((text) => this.loadMd(text, { src: url, fileName: null }), (e) => this.editOpen({ busy: false, error: e.message }));
+  }
+
+  editOpen(patch) { this.setState((s) => (s.open === null ? {} : { open: Object.assign({}, s.open, patch) })); }
 
   componentWillUnmount() {
     if (this.ro) this.ro.disconnect();
@@ -788,7 +952,7 @@ class Component extends DCLogic {
     const lines = (text) => (text ? text.split('\n') : []);
     const item = (it) => [('- ' + it.id + ': ' + it.text).replace(/\s+$/, '')].concat(lines(it.detail).map((l) => '  ' + l)).join('\n');
     const meta = (s) => (s.slug ? ['slug: ' + s.slug] : []).concat(s.color ? ['color: ' + s.color] : [], lines(s.desc));
-    const head = (s) => '## ' + s.title + (s.attach === null ? '' : ' > ' + model.sections[s.attach].title) + (s.label === '' ? '' : ': ' + s.label);
+    const head = (s) => '## ' + s.title.trim() + (s.attach === null ? '' : ' > ' + model.sections[s.attach].title.trim()) + (s.label === '' ? '' : ': ' + s.label);
     const blocks = model.sections.map((s) => [head(s)].concat(meta(s), s.items.map(item)).join('\n'));
     const linkLines = Component.pairs(model).reduce((out, p) => {
       const from = model.sections[Math.max(p.a, p.b)].items;
@@ -1269,6 +1433,8 @@ class Component extends DCLogic {
     return i < 0 ? { focus: null, rot: 0 } : { focus: i, rot: -Component.angles(model)[i] };
   }
 
+  static clearHash() { if (location.hash) history.replaceState(null, '', location.pathname + location.search); }
+
   // null removes the param. Rewrites the URL in place (no history entry).
   static setUrlParam(name, value) {
     const u = new URL(location.href);
@@ -1359,7 +1525,7 @@ class Component extends DCLogic {
     const model = s.error ? null : Component.stamped(s.model, s.base, Component.today());
     const md = model ? Component.serializeMd(model) : s.md;
     if (model) this.setState({ model: model, md: md, base: model });
-    Component.saveFile(src.split('/').pop().split('?')[0] || 'x-matrix.md', md, 'text/markdown');
+    Component.saveFile(src.split('/').pop().split('?')[0] || s.fileName || 'x-matrix.md', md, 'text/markdown');
   }
 
   // Opens summary.html (type 'summary' | 'badge') in a new tab, previewing
@@ -1424,18 +1590,40 @@ class Component extends DCLogic {
     if (!r.ok) { this.setState((s) => ({ draft: Object.assign({}, s.draft, { error: r.error.message }) })); return; }
     Component.setUrlParam('src', null);
     Component.setUrlParam('view', null);
+    Component.clearHash();
     const now = Date.now();
     this.setState((s) => ({
-      model: r.model, base: r.model, md: Component.serializeMd(r.model), error: null, hover: null, draft: null,
+      model: r.model, base: r.model, md: Component.serializeMd(r.model), error: null, hover: null, draft: null, fileName: null, pan: Component.NO_PAN,
       focus: null, rot: Component.nearest(0, s.rot),
       history: Component.commit(s.history, Component.snapshot(s), null, now)
     }));
   }
 
+  // The Clipboard API only exists on https / localhost; elsewhere (e.g. a
+  // LAN address over http) fall back to a hidden textarea + execCommand,
+  // which must run inside the click. Rejects if neither copies.
+  static copyText(text) {
+    const legacy = () => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+      const was = document.activeElement;
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      ta.remove();
+      if (was && was.focus) was.focus({ preventScroll: true });
+      return ok ? Promise.resolve() : Promise.reject(new Error('this browser blocked copying'));
+    };
+    if (!navigator.clipboard || !window.isSecureContext) return legacy();
+    return navigator.clipboard.writeText(text).catch(legacy);
+  }
+
   copyMd() {
     const text = this.state.md;
-    if (!navigator.clipboard) throw new Error('Clipboard is not available in this browser.');
-    navigator.clipboard.writeText(text).then(() => {
+    Component.copyText(text).then(() => {
       if (this.copyTimer) clearTimeout(this.copyTimer);
       this.setState({ copied: true });
       this.copyTimer = setTimeout(() => this.setState({ copied: false }), 1600);
@@ -1623,14 +1811,37 @@ class Component extends DCLogic {
     // The details drawer: the focused section's colour, short name and
     // description, and each of its items' slug and detail.
     const det = focus === null
-      ? { none: true, some: false, noItem: false, locked: true, color: '#000000', eyebrow: '', title: '', slug: '', slugPh: '', desc: '', items: [], onColor: () => {}, onSlug: () => {}, onDesc: () => {} }
+      ? { none: true, some: false, noItem: false, locked: true, color: '#000000', titleText: '', titleStyle: '', titleTip: '', onTitle: () => {}, onTitleBlur: () => {}, label: '', onLabel: () => {}, slug: '', slugPh: '', desc: '', items: [], onColor: () => {}, onSlug: () => {}, onDesc: () => {} }
       : (() => {
           const sec = secs[focus];
           const patch = (p) => { if (!locked) this.applyModel((md) => Component.withSection(md, focus, p), 'sec:' + focus + ':' + Object.keys(p)[0]); };
           return {
             none: false, some: true, locked: locked,
             noItem: !(s.sel && s.sel.sec === focus && s.sel.j < sec.items.length),
-            color: pal[focus].ac, eyebrow: sec.label, title: sec.title,
+            color: pal[focus].ac,
+            // Title: no ":" (starts the sub-text) or ">" (attaches); must stay
+            // non-empty and unique. Until it is, the field holds a draft, not applied.
+            ...(() => {
+              const draft = s.titleDraft && s.titleDraft.sec === focus ? s.titleDraft.text : null;
+              return {
+                titleText: draft === null ? sec.title : draft,
+                titleStyle: draft === null ? '' : 'border-color: #B42318;',
+                titleTip: draft === null ? 'Section title' : 'Not applied: a title can’t be empty, "Intersections", or the same as another section’s',
+                onTitle: (e) => {
+                  const v = e.target.value.replace(/[:>\n]/g, '');
+                  const t = v.trim();
+                  if (locked) return;
+                  const clash = t === '' || t.toLowerCase() === 'intersections' || secs.some((o, i) => i !== focus && o.title.toLowerCase() === t.toLowerCase());
+                  if (clash) { this.setState({ titleDraft: { sec: focus, text: v } }); return; }
+                  patch({ title: v }); // as typed, so spaces between words survive; parsing trims
+                  Component.setUrlParam('view', Component.slug(t));
+                  if (s.titleDraft) this.setState({ titleDraft: null });
+                },
+                onTitleBlur: () => { if (draft !== null) this.setState({ titleDraft: null }); }
+              };
+            })(),
+            label: sec.label,
+            onLabel: (e) => patch({ label: e.target.value.replace(/\n/g, ' ') }),
             onColor: (e) => patch({ color: e.target.value.toUpperCase() }),
             slug: sec.slug || '',
             slugPh: Component.shortSlug(sec.title),
@@ -1722,8 +1933,61 @@ class Component extends DCLogic {
       copyLabel: s.copied === true ? 'Copied' : s.copied === 'failed' ? 'Copy failed: select the text instead' : 'Copy',
       onCopy: () => this.copyMd(),
       onDownload: () => this.downloadMd(),
+      ...(() => {
+        const sh = s.share;
+        const src = new URLSearchParams(location.search).get('src');
+        const link = sh && sh.link;
+        const srcLink = (() => {
+          if (!src) return '';
+          const u = new URL(location.pathname, location.href);
+          u.searchParams.set('src', src);
+          const view = new URLSearchParams(location.search).get('view');
+          if (view) u.searchParams.set('view', view);
+          return u.href;
+        })();
+        const long = !!link && link.length > Component.LONG_LINK;
+        return {
+          shareOpen: sh !== null,
+          shareOpenStr: sh !== null ? 'true' : 'false',
+          toggleShare: () => this.toggleShare(),
+          closeShare: () => this.setState({ share: null }),
+          onShareKey: (e) => { if (e.key === 'Escape' && sh !== null) this.setState({ share: null }); },
+          snapDisabled: !link,
+          snapLabel: sh && sh.copied === 'snap' ? 'Copied ✓' : 'Copy link',
+          snapDesc: link ? 'Opens this X-Matrix as it is now: a snapshot inside the link (' + link.length.toLocaleString() + ' characters). Later edits don’t reach it.' : 'Preparing…',
+          onCopySnap: () => { if (link) this.copyLink(link, 'snap'); },
+          shareWarn: long,
+          shareWarnText: long ? 'Long link (' + (link.length / 1024).toFixed(1) + ' KB): some email and chat apps cut long links short. ' + (src ? 'The link to the file is shorter.' : 'Download the file and share it with ?src= instead.') : '',
+          hasSrc: !!src,
+          srcLabel: sh && sh.copied === 'src' ? 'Copied ✓' : 'Copy link to file',
+          srcDesc: src ? 'Always shows the latest saved ' + src.split('/').pop().split('?')[0] + '.' : '',
+          onCopySrc: () => this.copyLink(srcLink, 'src'),
+          onShareDownload: () => { this.setState({ share: null }); this.downloadMd(); },
+          shareErr: !!(sh && sh.error),
+          shareErrText: sh && sh.error ? sh.error : '',
+          shareFallback: sh ? sh.fallback : '',
+          selectAll: (e) => e.target.select()
+        };
+      })(),
       onBadge: () => this.openSummary('badge'),
       badgeSrc: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(Component.badgeSvg(Component.stamped(model, s.base, Component.today()))),
+      showOpen: () => this.setState({ open: { url: '', busy: false, error: null, drag: false }, viewMenu: false }),
+      hideOpen: () => this.setState({ open: null }),
+      onOpenKey: (e) => { if (e.key === 'Escape') this.setState({ open: null }); },
+      openOpen: s.open !== null,
+      dropBorder: s.open && s.open.drag ? '#3346D3' : '#D5D9E0',
+      dropBg: s.open && s.open.drag ? '#ECEEFC' : 'transparent',
+      onDropOver: (e) => { e.preventDefault(); if (!s.open.drag) this.editOpen({ drag: true }); },
+      onDropLeave: () => this.editOpen({ drag: false }),
+      onDropFile: (e) => { e.preventDefault(); this.editOpen({ drag: false }); this.openFile(e.dataTransfer && e.dataTransfer.files[0]); },
+      onPickFile: (e) => { const f = e.target.files && e.target.files[0]; e.target.value = ''; this.openFile(f); },
+      openUrl: s.open ? s.open.url : '',
+      onOpenUrlText: (e) => this.editOpen({ url: e.target.value }),
+      onOpenUrl: (e) => { e.preventDefault(); this.openUrl(); },
+      openUrlDisabled: !s.open || s.open.busy || s.open.url.trim() === '',
+      openUrlLabel: s.open && s.open.busy ? 'Opening…' : 'Open',
+      openErr: !!(s.open && s.open.error),
+      openErrMessage: s.open && s.open.error ? s.open.error : '',
       openCreate: () => this.setState({ draft: Component.defaultDraft(), viewMenu: false }),
       cancelCreate: () => this.setState({ draft: null }),
       stopClick: (e) => e.stopPropagation(),
