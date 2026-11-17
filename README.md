@@ -76,8 +76,8 @@ Ways to get them:
 
 - The badge next to the title opens `summary.html` in a new tab, previewing
   your unsaved edits. There you can pick badge or card and what to show, copy
-  a link to the page (when opened with `?src=`), copy README markdown, or
-  download the SVG.
+  README markdown, or download the SVG; its title links back to the full
+  X-Matrix.
 - `summary.html?src=<markdown url>&type=badge|summary&show=…` renders the
   saved file, e.g. [the Acme summary](https://aaronp.github.io/Hoshin-Kanri/summary.html?src=examples/acme-plan/x-matrix.md).
 - `node summary.js x-matrix.md [out-dir] [show]` writes both files next to
