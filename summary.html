@@ -1,0 +1,122 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>X-Matrix summary</title>
+<style>
+  :root { --fg: #16181D; --muted: #555C68; --line: #E2E5EA; --bg: #fff; --soft: #F6F7F9; --ac: #3346D3; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #e6edf3; --muted: #9198a1; --line: #30363d; --bg: #0d1117; --soft: #161b22; --ac: #7c8cf0; } }
+  body { font: 14px/1.5 Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif; margin: 0; color: var(--fg); background: var(--bg); }
+  main { max-width: 600px; margin: 0 auto; padding: 28px 16px; display: grid; gap: 18px; }
+  h1 { font-size: 18px; margin: 0; }
+  fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
+  legend { color: var(--muted); font-size: 12px; padding: 0 4px; }
+  select { font: inherit; padding: 4px 6px; max-width: 100%; }
+  #img { min-height: 40px; overflow-x: auto; }
+  #img img { display: block; max-width: none; }
+  .note { color: var(--muted); font-size: 13px; margin: 0; }
+  .err { color: #b42318; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; }
+  button, .btn { font: inherit; font-size: 13px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); color: var(--fg); cursor: pointer; text-decoration: none; }
+  button:disabled { opacity: .45; cursor: default; }
+  pre { background: var(--soft); border-radius: 8px; padding: 10px; margin: 0; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+  a { color: var(--ac); }
+</style>
+<main>
+  <h1 id="title">X-Matrix summary</h1>
+  <fieldset>
+    <legend>Image</legend>
+    <label><input type="radio" name="type" value="badge"> Badge</label>
+    <label><input type="radio" name="type" value="summary"> Summary card</label>
+    <label>Show
+      <select id="show"><option value="item">Last change (category : item)</option><option value="crumb">Breadcrumb to the last change</option><option value="last">Section of the last change</option></select>
+    </label>
+  </fieldset>
+  <div id="img">Loading…</div>
+  <p class="note" id="note"></p>
+  <div class="row">
+    <button id="copyLink">Copy link to this page</button>
+    <button id="copyMd">Copy README markdown</button>
+    <a class="btn" id="save">Download SVG</a>
+    <a class="btn" id="open">Open the full X-Matrix</a>
+  </div>
+  <pre id="embed"></pre>
+</main>
+<script>
+  // summary.html?src=<markdown url>&type=summary|badge&show=item|crumb|last|<section slug>
+  // Renders from the markdown alone, using its "> Last updated" line. With
+  // &draft (from the viewer's buttons) it previews the unsaved edits the viewer
+  // left in localStorage; links always point at the saved file (src).
+  const $ = (id) => document.getElementById(id);
+  const q = new URLSearchParams(location.search);
+  const src = q.get('src');
+  const absSrc = src && new URL(src, location.href).href;
+  const matrixUrl = new URL('Main.dc.html' + (src ? '?src=' + encodeURIComponent(absSrc) : ''), location.href).href;
+  let draft = null;
+  if (q.has('draft')) { try { draft = localStorage.getItem('xm-draft'); } catch (e) { /* fall back to src */ } }
+  let C, model, svgUrl;
+
+  const opts = () => ({ type: document.querySelector('[name=type]:checked').value, show: $('show').value });
+
+  // Settings live in the URL (minus draft), so the copied link reproduces them.
+  function pageUrl() {
+    const o = opts();
+    const u = new URL(location.pathname, location.href);
+    if (src) u.searchParams.set('src', src);
+    u.searchParams.set('type', o.type);
+    u.searchParams.set('show', o.show);
+    return u.href;
+  }
+
+  function render() {
+    const o = opts();
+    // On the card the last change is always shown as a breadcrumb.
+    const itemOpt = $('show').options[0];
+    itemOpt.hidden = itemOpt.disabled = o.type === 'summary';
+    if (o.type === 'summary' && o.show === 'item') { $('show').value = 'crumb'; o.show = 'crumb'; }
+    const svg = o.type === 'badge' ? C.badgeSvg(model, o.show) : C.summarySvg(model, o.show);
+    if (svgUrl) URL.revokeObjectURL(svgUrl);
+    svgUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    $('img').innerHTML = '';
+    $('img').appendChild(Object.assign(document.createElement('img'), { src: svgUrl, alt: model.title }));
+    Object.assign($('save'), { href: svgUrl, download: o.type + '.svg' });
+    $('embed').textContent = '[![' + model.title + '](' + o.type + '.svg)](' + matrixUrl + ')';
+    const u = new URL(pageUrl());
+    if (draft !== null) u.searchParams.set('draft', '1');
+    history.replaceState(null, '', u);
+  }
+
+  function copy(btn, text) {
+    const was = btn.textContent;
+    navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Copied'; setTimeout(() => { btn.textContent = was; }, 1200); });
+  }
+
+  const fetchText = (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(url + ': HTTP ' + r.status); return r.text(); });
+
+  Promise.all([fetchText('Main.dc.html'), draft !== null ? draft : src ? fetchText(absSrc) : Promise.reject(new Error('no ?src= given, and no unsaved edits to preview. Open this from the X-Matrix title bar.'))])
+    .then(([html, md]) => {
+      // The parser and renderer live in the viewer's component; reuse them.
+      const js = /<script[^>]*data-dc-script[^>]*>([\s\S]*?)<\/script>/.exec(html)[1];
+      C = new Function('DCLogic', js + '\nreturn Component;')(class {});
+      const r = C.parseMd(md);
+      if (!r.ok) throw new Error('line ' + r.error.line + ': ' + r.error.message);
+      model = r.model;
+      $('title').textContent = model.title;
+      model.sections.forEach((s) => $('show').appendChild(new Option('Section: ' + s.title, C.secSlug(s))));
+      document.querySelector('[name=type][value=' + (q.get('type') === 'summary' ? 'summary' : 'badge') + ']').checked = true;
+      const type = q.get('type') === 'summary' ? 'summary' : 'badge';
+      $('show').value = q.get('show') || (type === 'badge' ? 'item' : 'crumb');
+      if ($('show').selectedIndex < 0) $('show').value = 'crumb';
+      $('open').href = matrixUrl;
+      $('copyLink').disabled = !src;
+      $('note').textContent = (draft !== null ? 'Previewing your unsaved edits. ' : '') + (src
+        ? 'The link and README markdown point at ' + src + (draft !== null ? ', so they show these edits once you Download and save the markdown back there. ' : '. ')
+        : 'Opened without ?src=, so there is no file to link to. Save the markdown somewhere public and open it with ?src= to get a link. ') +
+        'README images must be real files: commit the downloaded SVG next to the markdown, or have your Pages workflow run summary.js.';
+      document.querySelectorAll('[name=type]').forEach((el) => el.addEventListener('change', render));
+      $('show').addEventListener('change', render);
+      $('copyLink').addEventListener('click', (e) => copy(e.target, pageUrl()));
+      $('copyMd').addEventListener('click', (e) => copy(e.target, $('embed').textContent));
+      render();
+    })
+    .catch((e) => { $('img').textContent = 'Could not render: ' + e.message; $('img').className = 'err'; });
+</script>

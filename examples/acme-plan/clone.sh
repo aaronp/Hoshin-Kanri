@@ -33,7 +33,7 @@ fi
 SRC=$(cd "$(dirname "$0")" && pwd)
 mkdir -p "$DEST"
 cp -R "$SRC/.github" "$SRC/index.html" "$SRC/x-matrix.md" "$SRC/README.md" "$DEST/"
-sed -i.bak "s#https://aaronp.github.io/hoshin-kanri-example/#$PAGES#" "$DEST/README.md" && rm "$DEST/README.md.bak"
+sed -i.bak "s#https://aaronp.github.io/hoshin-kanri-example/#$PAGES#g" "$DEST/README.md" && rm "$DEST/README.md.bak"
 
 cd "$DEST"
 git init -q -b master

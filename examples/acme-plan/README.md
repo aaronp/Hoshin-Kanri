@@ -1,6 +1,9 @@
 # Acme plan — X-Matrix
 
 **[▶ View the X-Matrix](https://aaronp.github.io/hoshin-kanri-example/)**
+[![X-Matrix](https://aaronp.github.io/hoshin-kanri-example/badge.svg)](https://aaronp.github.io/hoshin-kanri-example/)
+
+[![X-Matrix summary](https://aaronp.github.io/hoshin-kanri-example/summary.svg)](https://aaronp.github.io/hoshin-kanri-example/)
 
 The data lives in [`x-matrix.md`](x-matrix.md). The UI comes from
 [aaronp/Hoshin-Kanri](https://github.com/aaronp/Hoshin-Kanri).

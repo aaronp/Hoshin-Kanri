@@ -22,6 +22,12 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - name: Render badge.svg and summary.svg from x-matrix.md
+        run: |
+          V=https://aaronp.github.io/Hoshin-Kanri
+          curl -sfL $V/summary.js -o "$RUNNER_TEMP/summary.js"
+          curl -sfL $V/Main.dc.html -o "$RUNNER_TEMP/Main.dc.html"
+          node "$RUNNER_TEMP/summary.js" x-matrix.md
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .

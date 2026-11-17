@@ -93,7 +93,7 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 </helmet>
 <div ref="{{ setVp }}" style="position: relative; width: 100%; height: 100vh; min-height: 640px; overflow: hidden; background-color: #F3F4F6; font-family: Inter, system-ui, sans-serif; color: #16181D">
 
-<div style="position: absolute; left: 0; top: 0; bottom: 0; overflow: hidden; background-color: #F3F4F6; background-image: radial-gradient(#DCDFE5 1px, transparent 1px); background-size: 22px 22px; {{ matrixPaneStyle }}">
+<div class="stage-pane" ref="{{ setPane }}" style="position: absolute; left: 0; top: 0; bottom: 0; overflow: hidden; touch-action: none; cursor: grab; background-color: #F3F4F6; background-image: radial-gradient(#DCDFE5 1px, transparent 1px); background-size: 22px 22px; {{ matrixPaneStyle }}">
 
 <div class="stage" style="position: absolute; {{ stageStyle }}">
 <sc-for list="{{ tris }}" as="t" hint-placeholder-count="4">
@@ -117,7 +117,7 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 <sc-if value="{{ s.editing }}" hint-placeholder-val="{{ false }}">
 <div class="lab" style="position: absolute; {{ s.labStyle }}" title="{{ s.tip }}">
 <span class="badge">{{ s.code }}</span>
-<input class="inp" type="text" value="{{ s.text }}" placeholder="{{ s.ph }}" aria-label="{{ s.aria }}" onChange="{{ s.onText }}">
+<input class="inp" type="text" value="{{ s.text }}" placeholder="{{ s.ph }}" aria-label="{{ s.aria }}" onChange="{{ s.onText }}" onFocus="{{ s.onFocus }}">
 <sc-if value="{{ s.canDelete }}" hint-placeholder-val="{{ true }}">
 <button class="del" aria-label="{{ s.delAria }}" title="Remove" onClick="{{ s.onDelete }}">
 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7"></path></svg>
@@ -156,13 +156,25 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 </sc-if>
 </div>
 
-<header style="position: absolute; left: 0; right: 0; top: 0; min-height: 68px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 12px 20px; background-color: rgba(255,255,255,0.94); border-bottom: 1px solid #E2E5EA">
+<sc-if value="{{ detClosed }}" hint-placeholder-val="{{ true }}">
+<button class="btn sm" style="position: absolute; right: 0; top: 50%; z-index: 2; height: auto; padding: 14px 7px; border-right: 0; border-radius: 8px 0 0 8px; writing-mode: vertical-rl; box-shadow: -4px 0 12px rgba(16,24,40,0.06)" aria-label="Show details" title="Section and item details" onClick="{{ toggleDetails }}">‹ Details</button>
+</sc-if>
+<div class="zoom" role="group" aria-label="Zoom" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px; background-color: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 10px; box-shadow: 0 4px 12px rgba(16,24,40,0.06); cursor: default">
+<button class="icon-btn" style="width: 32px; height: 32px" aria-label="Zoom in" title="Zoom in (or pinch / ctrl+scroll)" onClick="{{ zoomIn }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg></button>
+<span style="font: 500 10.5px/1 'IBM Plex Mono', ui-monospace, monospace; color: #555C68; padding: 2px 0">{{ zoomPct }}</span>
+<button class="icon-btn" style="width: 32px; height: 32px" aria-label="Zoom out" title="Zoom out" onClick="{{ zoomOut }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10"></path></svg></button>
+<button class="icon-btn" style="width: 32px; height: 32px" aria-label="Fit to view" title="Fit to view (drag or scroll to pan)" disabled="{{ fitDisabled }}" onClick="{{ zoomFit }}"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 6V2.5H6M13.5 6V2.5H10M2.5 10v3.5H6M13.5 10v3.5H10"></path></svg></button>
+</div>
+<header ref="{{ setHead }}" style="position: absolute; left: 0; right: 0; top: 0; min-height: 68px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 12px 20px; background-color: rgba(255,255,255,0.94); border-bottom: 1px solid #E2E5EA">
 <div style="display: flex; align-items: center; gap: 10px; flex: 1 1 260px; min-width: 0">
 <div style="width: 34px; height: 34px; flex: 0 0 auto; border-radius: 9px; background-color: #16181D; color: #fff; display: grid; place-items: center">
 <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="1.5"></rect><path d="M2.5 2.5l13 13M15.5 2.5l-13 13"></path></svg>
 </div>
 <label for="xm-title" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Matrix title</label>
 <input id="xm-title" class="title-inp" type="text" value="{{ title }}" onChange="{{ onTitle }}">
+<button class="icon-btn" style="width: auto; height: 32px; padding: 0 6px; flex: 0 0 auto" aria-label="Badge and summary images" title="Badge and summary images: preview, copy a link or download (opens a new tab)" onClick="{{ onBadge }}">
+<img src="{{ badgeSrc }}" alt="" style="height: 20px; display: block">
+</button>
 </div>
 <nav aria-label="Matrix view" style="position: relative" onKeyDown="{{ onMenuKey }}">
 <button class="btn sm" aria-haspopup="true" aria-expanded="{{ viewMenuStr }}" onClick="{{ toggleViewMenu }}">
@@ -184,6 +196,10 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
 Create
 </button>
+<button class="btn sm" title="Download the markdown, stamped with what you changed" onClick="{{ onDownload }}">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2.5v8M4.5 7L8 10.5 11.5 7M3 13.5h10"></path></svg>
+Download
+</button>
 <button class="btn sm {{ mdBtnCls }}" aria-pressed="{{ panelOpenStr }}" onClick="{{ togglePanel }}">
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="3" width="13" height="10" rx="1.5"></rect><path d="M4 10.5V5.5l2 2.5 2-2.5v5M11 5.5v5M9.5 9l1.5 1.5L12.5 9"></path></svg>
 Markdown
@@ -198,7 +214,7 @@ Markdown
 </div>
 </header>
 
-<footer style="position: absolute; left: 16px; right: 16px; bottom: 16px; min-height: 68px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 12px 14px 12px 20px; background-color: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 14px; box-shadow: 0 8px 24px rgba(16,24,40,0.08)">
+<footer ref="{{ setFoot }}" style="position: absolute; left: 16px; right: 16px; bottom: 16px; min-height: 68px; box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; padding: 12px 14px 12px 20px; background-color: #FFFFFF; border: 1px solid #E2E5EA; border-radius: 14px; box-shadow: 0 8px 24px rgba(16,24,40,0.08)">
 <sc-if value="{{ isOverview }}" hint-placeholder-val="{{ true }}">
 <div style="flex: 1 1 320px; min-width: 0">
 <div style="font-size: 14px; font-weight: 600; color: #16181D">Full matrix</div>
@@ -229,6 +245,50 @@ Next: {{ cap.nextLabel }}
 </footer>
 </div>
 
+<sc-if value="{{ detOpen }}" hint-placeholder-val="{{ false }}">
+<aside aria-label="Details" style="position: absolute; top: 0; bottom: 0; z-index: 3; box-sizing: border-box; display: flex; flex-direction: column; background-color: #FFFFFF; border-left: 1px solid #E2E5EA; box-shadow: -8px 0 24px rgba(16,24,40,0.05); {{ detStyle }}">
+<div style="display: flex; align-items: center; gap: 10px; padding: 14px 12px 12px 18px; border-bottom: 1px solid #E2E5EA">
+<div style="flex: 1 1 auto; min-width: 0">
+<div style="font-size: 14px; font-weight: 650; color: #16181D">Details</div>
+<div style="font-size: 12px; color: #555C68; margin-top: 2px">Colour, short names and descriptions. Short names appear on badges.</div>
+</div>
+<button class="icon-btn" aria-label="Hide details" title="Hide details" onClick="{{ toggleDetails }}">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"></path></svg>
+</button>
+</div>
+<div style="flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 16px 18px 24px; display: flex; flex-direction: column; gap: 14px">
+<sc-if value="{{ det.none }}" hint-placeholder-val="{{ false }}">
+<div style="font-size: 13px; color: #555C68; line-height: 1.5">Open a section (click it in the matrix, or use the View menu) to edit its colour, short name and description, and an item’s slug and detail.</div>
+</sc-if>
+<sc-if value="{{ det.some }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font: 600 10px/1.2 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: {{ det.color }}">{{ det.eyebrow }}</div>
+<div style="font-size: 15px; font-weight: 650; color: #16181D">{{ det.title }}</div>
+<div style="display: flex; gap: 8px; align-items: center">
+<input type="color" value="{{ det.color }}" disabled="{{ det.locked }}" onChange="{{ det.onColor }}" aria-label="Section colour" title="Section colour" style="flex: 0 0 auto; width: 40px; height: 34px; padding: 2px; border: 1px solid #D5D9E0; border-radius: 8px; background-color: #fff; cursor: pointer">
+<input class="field" style="flex: 1 1 auto; height: 34px; font: 500 12.5px/1 'IBM Plex Mono', ui-monospace, monospace" type="text" value="{{ det.slug }}" placeholder="{{ det.slugPh }}" disabled="{{ det.locked }}" onChange="{{ det.onSlug }}" aria-label="Section short name, used on badges" title="Short name, used on badges">
+</div>
+<textarea class="field" rows="3" style="height: auto; padding: 8px 10px; resize: vertical; line-height: 1.4; font-size: 13px" placeholder="Section description (optional)" disabled="{{ det.locked }}" onChange="{{ det.onDesc }}" aria-label="Section description" value="{{ det.desc }}"></textarea>
+</div>
+<div style="font: 600 10px/1.2 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #555C68; margin-top: 6px">Selected item</div>
+<sc-if value="{{ det.noItem }}" hint-placeholder-val="{{ false }}">
+<div style="font-size: 13px; color: #555C68; line-height: 1.5">Click an item’s text in the matrix, or add one, to edit its slug and detail.</div>
+</sc-if>
+<sc-for list="{{ det.items }}" as="d" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 1px solid #E2E5EA; border-radius: 10px">
+<div style="display: flex; gap: 8px; align-items: baseline; min-width: 0">
+<span style="flex: 0 0 auto; font: 600 11px/1 'IBM Plex Mono', ui-monospace, monospace; color: {{ det.color }}">{{ d.code }}</span>
+<span style="flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 600; color: #16181D" title="{{ d.text }}">{{ d.text }}</span>
+</div>
+<input class="field" style="height: 32px; font: 500 12px/1 'IBM Plex Mono', ui-monospace, monospace; {{ d.slugStyle }}" type="text" value="{{ d.slug }}" disabled="{{ det.locked }}" onChange="{{ d.onSlug }}" onBlur="{{ d.onSlugBlur }}" aria-label="{{ d.slugAria }}" title="{{ d.slugTip }}">
+<textarea class="field" rows="2" style="height: auto; padding: 7px 10px; resize: vertical; line-height: 1.4; font-size: 12.5px" placeholder="Detail (optional)" disabled="{{ det.locked }}" onChange="{{ d.onDetail }}" aria-label="{{ d.detailAria }}" value="{{ d.detail }}"></textarea>
+</div>
+</sc-for>
+</sc-if>
+</div>
+</aside>
+</sc-if>
+
 <sc-if value="{{ panelOpen }}" hint-placeholder-val="{{ true }}">
 <aside aria-label="Markdown source" style="position: absolute; top: 0; right: 0; bottom: 0; box-sizing: border-box; display: flex; flex-direction: column; background-color: #FFFFFF; border-left: 1px solid #E2E5EA; box-shadow: -8px 0 24px rgba(16,24,40,0.05); {{ panelStyle }}">
 <div style="display: flex; align-items: center; gap: 10px; padding: 14px 12px 12px 18px; border-bottom: 1px solid #E2E5EA; flex-wrap: wrap">
@@ -258,6 +318,7 @@ Next: {{ cap.nextLabel }}
 <textarea id="xm-md" class="md" spellcheck="false" value="{{ md }}" onChange="{{ onMd }}"></textarea>
 <div style="padding: 12px 18px 14px; border-top: 1px solid #E2E5EA; font-size: 12px; line-height: 1.9; color: #3A404A">
 <div><code class="k"># Title</code>, then 1–8 <code class="k">## </code> sections, any wording, optional <code class="k">: label</code>. They go round a polygon from the bottom, clockwise: 1 = list · 2 = table · 3 = triangle · 4 = X · 5+ = star. <code class="k">## Owners &gt; Priorities</code> attaches a section to one other. <code class="k">## Intersections</code> holds the links.</div>
+<div>Under a heading, before its items: <code class="k">slug: short-name</code> (for badges), <code class="k">color: #3346D3</code>, then any description text. Text under an item is its detail.</div>
 <div>Items: <code class="k">- slug: Title</code> · Links: <code class="k">- from -&gt; to: strong | supporting</code> (owners: <code class="k">leads | supports</code>)</div>
 </div>
 </aside>
@@ -307,17 +368,27 @@ class Component extends DCLogic {
     if (!parsed.ok) throw new Error('bug: this should never happen — seed markdown invalid at line ' + parsed.error.line + ': ' + parsed.error.message);
     this.state = Object.assign({
       model: parsed.model,
+      base: parsed.model, // as opened / last saved: Download stamps what changed since
       md: Component.serializeMd(parsed.model),
       error: null,
       history: Component.emptyHistory(),
       hover: null,
       viewMenu: false,
       panelOpen: new URLSearchParams(location.search).has('markdown'),
+      detailsOpen: new URLSearchParams(location.search).has('details'),
       copied: false,
       vw: 1440,
       vh: 900,
       draft: null,
-      dropKey: null
+      dropKey: null,
+      slugDraft: null, // { id, text } while an item's slug field holds an invalid / duplicate value
+      sel: null, // { sec, j }: the item last focused, shown in the details drawer
+      // The user's pan / zoom on top of the automatic framing; reset when the
+      // framed section changes. `moving` = follow the pointer, no easing.
+      pan: { k: 1, dx: 0, dy: 0, moving: false },
+      headH: 68,
+      footH: 84,
+      newItem: null // id of an item just added: focus it and pan it into view
     }, Component.viewFromUrl(parsed.model));
     this.ro = null;
     this.copyTimer = null;
@@ -334,6 +405,56 @@ class Component extends DCLogic {
       measure();
       this.ro = new ResizeObserver(measure);
       this.ro.observe(el);
+      el.addEventListener('wheel', this.onWheel, { passive: false });
+      el.addEventListener('pointerdown', this.onPointerDown);
+    };
+    // Header / footer heights, so framing keeps the matrix clear of them.
+    this.sized = {};
+    const sizeRef = (key) => (el) => {
+      if (this.sized[key]) { this.sized[key].disconnect(); delete this.sized[key]; }
+      if (!el) return;
+      const ro = new ResizeObserver(() => { const h = Math.round(el.getBoundingClientRect().height); if (h > 0 && h !== this.state[key]) this.setState({ [key]: h }); });
+      ro.observe(el);
+      this.sized[key] = ro;
+    };
+    this.setPane = (el) => { this.paneEl = el; };
+    this.setHead = sizeRef('headH');
+    this.setFoot = sizeRef('footH');
+
+    // Pan: drag empty space, or scroll. Zoom: pinch / ctrl+scroll, about the pointer.
+    const onCanvas = (t) => t instanceof Element && t.closest('.stage-pane') && !t.closest('input, textarea, select, a, header, footer, aside, [role=dialog], .zoom');
+    this.onWheel = (e) => {
+      if (!onCanvas(e.target)) return;
+      e.preventDefault();
+      if (e.ctrlKey || e.metaKey) this.zoomAt(Math.exp(-e.deltaY * 0.01), e.clientX, e.clientY);
+      else this.panBy(-e.deltaX, -e.deltaY);
+    };
+    this.onPointerDown = (e) => {
+      if (e.button !== 0 || !onCanvas(e.target)) return;
+      // Drags can start on cells and sections too; past a few pixels it's a
+      // pan, and the click that would follow is swallowed.
+      const x0 = e.clientX;
+      const y0 = e.clientY;
+      let x = x0;
+      let y = y0;
+      let dragging = false;
+      const move = (m) => {
+        if (!dragging && Math.hypot(m.clientX - x0, m.clientY - y0) < 4) return;
+        dragging = true;
+        this.panBy(m.clientX - x, m.clientY - y);
+        x = m.clientX;
+        y = m.clientY;
+      };
+      const up = () => {
+        window.removeEventListener('pointermove', move);
+        window.removeEventListener('pointerup', up);
+        if (!dragging) return;
+        const swallow = (c) => { c.stopPropagation(); c.preventDefault(); };
+        window.addEventListener('click', swallow, { capture: true, once: true });
+        setTimeout(() => window.removeEventListener('click', swallow, { capture: true }), 0);
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
     };
   }
 
@@ -347,7 +468,7 @@ class Component extends DCLogic {
       .then((text) => {
         const r = Component.parseMd(text);
         this.setState(r.ok
-          ? Object.assign({ md: text, model: r.model, error: null, history: Component.emptyHistory() }, Component.viewFromUrl(r.model))
+          ? Object.assign({ md: text, model: r.model, base: r.model, error: null, history: Component.emptyHistory() }, Component.viewFromUrl(r.model))
           : { md: text, error: r.error, history: Component.emptyHistory() });
       })
       .catch((e) => this.setState({ error: { line: 1, message: 'Could not load ' + src + ' (' + e.message + '). Showing the built-in example.' } }));
@@ -355,6 +476,8 @@ class Component extends DCLogic {
 
   componentWillUnmount() {
     if (this.ro) this.ro.disconnect();
+    Object.keys(this.sized).forEach((k) => this.sized[k].disconnect());
+    if (this.newTimer) clearTimeout(this.newTimer);
     if (this.copyTimer) clearTimeout(this.copyTimer);
   }
 
@@ -379,6 +502,17 @@ class Component extends DCLogic {
       { ac: '#B0307A', tint: '#FBEAF3', tint2: '#F5D3E6' }
     ];
   }
+
+  // Per-section { ac, tint, tint2 }: its "color:" (tints mixed with white, as
+  // in the palette), else the palette by position.
+  static colors(model) {
+    const pal = Component.palette();
+    const mix = (hex, a) => '#' + [1, 3, 5].map((i) => Math.round(255 - (255 - parseInt(hex.slice(i, i + 2), 16)) * a).toString(16).padStart(2, '0')).join('').toUpperCase();
+    return model.sections.map((s, i) => (s.color ? { ac: s.color, tint: mix(s.color, 0.09), tint2: mix(s.color, 0.17) } : pal[i % pal.length]));
+  }
+
+  // A section's short name, for badges: its "slug:", else shortSlug(title).
+  static secSlug(s) { return s.slug || Component.shortSlug(s.title); }
 
   // One letter per section for row badges: the first letter of its heading
   // not already taken by an earlier section.
@@ -487,7 +621,10 @@ class Component extends DCLogic {
   // =====================================================================
   // Markdown ⇄ model (pure). Model shape:
   //   { title: string,
-  //     sections: [{ title, label, attach: null | index of target section, items: [{ id: slug, text }] }],
+  //     updated: null | { date: 'YYYY-MM-DD', id: slug | null } — stamped on Download,
+  //     sections: [{ title, label, attach: null | index of target section,
+  //                  slug: null | short name for badges, color: null | '#RRGGBB', desc: string,
+  //                  items: [{ id: slug, text, detail: string }] }],
   //     linksHeading: string,
   //     links: { [linkKey(idA, idB)]: 1 (strong/leads) | 2 (supporting/supports) } }
   // =====================================================================
@@ -536,6 +673,12 @@ class Component extends DCLogic {
         if (st.current !== null) fail(ln, 'The "# Title" line must come before any "## " section.');
         return Object.assign({}, st, { title: h1[1].trim(), titleLine: ln });
       }
+      // "> Last updated 2026-11-17: slug" under the title, written on Download.
+      const up = new RegExp('^>\\s*Last updated\\s+(\\d{4}-\\d{2}-\\d{2})(?:\\s*:\\s*(' + SLUG + '))?$', 'i').exec(t);
+      if (up) {
+        if (st.title === null || st.current !== null || st.updated !== null) fail(ln, 'Write "> Last updated YYYY-MM-DD: slug" once, between the "# Title" and the first section.');
+        return Object.assign({}, st, { updated: { date: up[1], id: up[2] || null } });
+      }
       const h2 = /^##\s+(.+)$/.exec(t);
       if (h2) {
         // "## Title > Target: label" — everything after the FIRST colon is
@@ -549,7 +692,7 @@ class Component extends DCLogic {
         if (htitle === '') fail(ln, 'This heading has no title. Write it as "## Title" or "## Title: label".');
         if (target === '') fail(ln, 'Nothing after ">". Write "## Title > Other section title" to attach this section to another.');
         if (target === null && htitle.toLowerCase() === 'intersections') return asLinks(st, heading, ln);
-        const sec = { title: htitle, label: colon < 0 ? '' : heading.slice(colon + 1).trim(), target: target, heading: heading, ln: ln, items: [] };
+        const sec = { title: htitle, label: colon < 0 ? '' : heading.slice(colon + 1).trim(), target: target, heading: heading, ln: ln, slug: null, color: null, desc: '', items: [] };
         return Object.assign({}, st, { current: st.secs.length, secs: st.secs.concat([sec]) });
       }
       const li = /^[-*]\s+(.*)$/.exec(t);
@@ -570,14 +713,32 @@ class Component extends DCLogic {
         if (!m) fail(ln, 'Items must look like "- slug: Title". Slugs use lowercase letters, digits and hyphens.');
         if (st.where[m[1]]) fail(ln, 'Slug "' + m[1] + '" is already used on line ' + st.where[m[1]].ln + '. Slugs must be unique across the whole matrix.');
         if (cur.items.length >= Component.MAX) fail(ln, '"' + cur.title + '" can hold at most ' + Component.MAX + ' items.');
-        const item = { id: m[1], text: m[2].trim() };
+        const item = { id: m[1], text: m[2].trim(), detail: '' };
         return Object.assign({}, st, {
           secs: st.secs.map((s, i) => (i === st.current ? Object.assign({}, s, { items: s.items.concat([item]) }) : s)),
           where: Object.assign({}, st.where, { [m[1]]: { sec: st.current, ln: ln } })
         });
       }
+      // Plain text in a section: "slug: x" / "color: #hex" before its items,
+      // otherwise a description of the section (before its items) or of its last item.
+      if (st.current !== null && st.current !== 'links') {
+        const cur = st.secs[st.current];
+        const withCur = (patch) => Object.assign({}, st, { secs: st.secs.map((x, i) => (i === st.current ? Object.assign({}, x, patch) : x)) });
+        const more = (d) => (d ? d + '\n' : '') + t;
+        const attr = cur.items.length === 0 ? /^(slug|color)\s*:\s*(.*)$/i.exec(t) : null;
+        if (attr) {
+          const key = attr[1].toLowerCase();
+          const v = attr[2].trim();
+          if (key === 'slug' && !new RegExp('^' + SLUG + '$').test(v)) fail(ln, 'A section slug uses lowercase letters, digits and hyphens, e.g. "slug: goals".');
+          if (key === 'color' && !/^#[0-9a-fA-F]{6}$/.test(v)) fail(ln, 'A colour looks like "color: #3346D3".');
+          return withCur({ [key]: key === 'color' ? v.toUpperCase() : v });
+        }
+        if (cur.items.length === 0) return withCur({ desc: more(cur.desc) });
+        const last = cur.items[cur.items.length - 1];
+        return withCur({ items: cur.items.slice(0, -1).concat([Object.assign({}, last, { detail: more(last.detail) })]) });
+      }
       return fail(ln, 'Unrecognised line. Expected "# Title", a "## Section" heading, or a "- " list item.');
-    }, { title: null, titleLine: 0, current: null, secs: [], linksHeading: null, where: {}, pending: [] });
+    }, { title: null, titleLine: 0, updated: null, current: null, secs: [], linksHeading: null, where: {}, pending: [] });
 
     if (acc.title === null) fail(1, 'The markdown must start with a "# Title" line.');
     if (acc.title === '') fail(acc.titleLine, 'The title is empty.');
@@ -598,7 +759,9 @@ class Component extends DCLogic {
 
     const model = {
       title: acc.title,
-      sections: acc.secs.map((s, i) => ({ title: s.title, label: s.label, attach: attach[i], items: s.items })),
+      // An unknown slug (item since deleted) just drops the breadcrumb.
+      updated: acc.updated && Object.assign({}, acc.updated, { id: acc.where[acc.updated.id] ? acc.updated.id : null }),
+      sections: acc.secs.map((s, i) => ({ title: s.title, label: s.label, attach: attach[i], slug: s.slug, color: s.color, desc: s.desc, items: s.items })),
       linksHeading: acc.linksHeading === null ? 'Intersections' : acc.linksHeading,
       links: {}
     };
@@ -622,9 +785,11 @@ class Component extends DCLogic {
 
   // Links are written from the later section's item to the earlier one's.
   static serializeMd(model) {
-    const item = (it) => ('- ' + it.id + ': ' + it.text).replace(/\s+$/, '');
+    const lines = (text) => (text ? text.split('\n') : []);
+    const item = (it) => [('- ' + it.id + ': ' + it.text).replace(/\s+$/, '')].concat(lines(it.detail).map((l) => '  ' + l)).join('\n');
+    const meta = (s) => (s.slug ? ['slug: ' + s.slug] : []).concat(s.color ? ['color: ' + s.color] : [], lines(s.desc));
     const head = (s) => '## ' + s.title + (s.attach === null ? '' : ' > ' + model.sections[s.attach].title) + (s.label === '' ? '' : ': ' + s.label);
-    const blocks = model.sections.map((s) => [head(s)].concat(s.items.map(item)).join('\n'));
+    const blocks = model.sections.map((s) => [head(s)].concat(meta(s), s.items.map(item)).join('\n'));
     const linkLines = Component.pairs(model).reduce((out, p) => {
       const from = model.sections[Math.max(p.a, p.b)].items;
       const to = model.sections[Math.min(p.a, p.b)].items;
@@ -634,7 +799,158 @@ class Component extends DCLogic {
       }, [])), []));
     }, []);
     const tail = linkLines.length === 0 ? [] : ['', ['## ' + model.linksHeading].concat(linkLines).join('\n')];
-    return ['# ' + model.title, '', blocks.join('\n\n')].concat(tail, ['']).join('\n');
+    const u = model.updated;
+    const known = u && u.id && model.sections.some((s) => s.items.some((it) => it.id === u.id));
+    const stamp = u ? ['> Last updated ' + u.date + (known ? ': ' + u.id : ''), ''] : [];
+    return ['# ' + model.title, ''].concat(stamp, [blocks.join('\n\n')], tail, ['']).join('\n');
+  }
+
+  // =====================================================================
+  // "Last updated" + summary images (pure). Used on Download, by
+  // summary.html (?src=… in the browser) and summary.js (CLI / CI).
+  // =====================================================================
+
+  static allItems(model) { return model.sections.flatMap((s, sec) => s.items.map((it) => Object.assign({ sec: sec }, it))); }
+
+  // The item added or renamed since `base`, else one end of a changed link,
+  // else null (also with no base to compare with).
+  // ponytail: first change in document order, not the most recent edit; track edits if that matters.
+  static changedItem(model, base) {
+    if (!base) return null;
+    const before = {};
+    const sig = (it) => it.text + '\n' + (it.detail || '');
+    Component.allItems(base).forEach((it) => { before[it.id] = sig(it); });
+    const items = Component.allItems(model);
+    const hit = items.find((it) => before[it.id] !== sig(it));
+    if (hit) return hit;
+    const k = Object.keys(model.links).concat(Object.keys(base.links)).find((key) => base.links[key] !== model.links[key]);
+    return (k && items.find((it) => k.split('::').indexOf(it.id) >= 0)) || null;
+  }
+
+  // `model` with `updated` set to today's change against `base` (what was
+  // opened or last saved); unchanged if nothing but the stamp differs. A
+  // change to no item (e.g. a section's colour) keeps the item already named.
+  static stamped(model, base, date) {
+    const plain = (m) => Component.serializeMd(Object.assign({}, m, { updated: null }));
+    if (base && plain(model) === plain(base)) return model;
+    const it = Component.changedItem(model, base);
+    const kept = model.updated ? model.updated.id : null;
+    return Object.assign({}, model, { updated: { date: date, id: it ? it.id : kept } });
+  }
+
+  static today() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  // The item's strongest link into section `sec`, or undefined.
+  static strongest(model, id, sec) {
+    const v = (o) => model.links[Component.linkKey(id, o.id)];
+    const best = model.sections[sec].items.filter(v).sort((a, b) => v(a) - v(b))[0];
+    return best && Object.assign({ sec: sec }, best);
+  }
+
+  // From the polygon's first section down to `item` along the strongest
+  // links (e.g. breakthrough -> annual -> priority -> target), plus whoever
+  // in an attached section (e.g. an owner) is linked to a step.
+  static breadcrumb(model, item) {
+    const ring = Component.ring(model);
+    const target = model.sections[item.sec].attach;
+    let cur = target === null ? item : Component.strongest(model, item.id, target);
+    if (!cur) return { steps: [item], owner: null };
+    let steps = target === null ? [item] : [cur, item];
+    for (let r = ring.indexOf(cur.sec) - 1; r >= 0 && (cur = Component.strongest(model, cur.id, ring[r])); r--) steps = [cur].concat(steps);
+    const attached = model.sections.map((s, sec) => sec).filter((sec) => model.sections[sec].attach !== null);
+    const owner = target !== null ? null : attached.map((sec) => steps.map((st) => Component.strongest(model, st.id, sec)).find(Boolean)).find(Boolean);
+    return { steps: steps, owner: owner || null };
+  }
+
+  static esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]); }
+  static ellipsis(s, n) { return s.length > n ? s.slice(0, n - 1) + '…' : s; }
+
+  // What a summary or badge shows, `show`: 'item' (badges only: "category :
+  // item" of the last change), 'crumb' (the last change as a breadcrumb),
+  // 'last' (the last change's section) or a section slug as in ?view=.
+  // Missing or unknown = the type's default (badge: item, summary: crumb).
+  static lastItem(model) {
+    const u = model.updated;
+    return (u && u.id && Component.allItems(model).find((it) => it.id === u.id)) || null;
+  }
+
+  // The section `show` names, or -1 (date / crumb / unknown).
+  static shownSection(model, show) {
+    const item = Component.lastItem(model);
+    if (show === 'last') return item ? item.sec : -1;
+    return model.sections.findIndex((s) => Component.slug(s.title) === show || Component.secSlug(s) === show);
+  }
+
+  // Shields-style segments: a category's slug on its colour, items' slugs on grey.
+  // Default: "<category> : <item>" of the last change.
+  static badgeSvg(model, show) {
+    const esc = Component.esc;
+    const clip = Component.ellipsis;
+    const pal = Component.colors(model);
+    const item = Component.lastItem(model);
+    const sec = Component.shownSection(model, show);
+    const GREY = '#555';
+    const cat = (i) => ({ text: Component.secSlug(model.sections[i]), fill: pal[i].ac });
+    const segs = sec >= 0
+      ? [cat(sec), { text: clip(model.sections[sec].items.map((it) => it.id).join(' · '), 90), fill: GREY }]
+      : !item ? [{ text: clip(model.title, 40), fill: GREY }]
+        : show === 'crumb' ? Component.breadcrumb(model, item).steps.map((st) => ({ text: st.id, fill: pal[st.sec].ac }))
+          : [cat(item.sec), { text: item.id, fill: GREY }];
+    // ponytail: ~6.5px per char at 11px Verdana, no font metrics; wide text runs a bit long.
+    const ws = segs.map((g) => Math.round(g.text.length * 6.5) + 10);
+    const xs = ws.reduce((acc, w) => acc.concat([acc[acc.length - 1] + w]), [0]);
+    const W = xs[xs.length - 1];
+    const all = segs.map((g) => g.text).join(show === 'crumb' ? ' › ' : ' : ');
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="20" role="img" aria-label="' + esc(all) + '">\n' +
+      '<title>' + esc(model.title + ' — ' + all + (item && item.text ? ' — ' + item.text : '')) + '</title>\n' +
+      '<clipPath id="r"><rect width="' + W + '" height="20" rx="3"/></clipPath>\n' +
+      '<g clip-path="url(#r)">' + segs.map((g, i) => '<rect x="' + xs[i] + '" width="' + ws[i] + '" height="20" fill="' + g.fill + '"/>').join('') + '</g>\n' +
+      '<g fill="#fff" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11">' +
+      segs.map((g, i) => '<text x="' + (xs[i] + ws[i] / 2) + '" y="14" text-anchor="middle">' + esc(g.text) + '</text>').join('') + '</g></svg>\n';
+  }
+
+  // A card: title, date + owner, then the last change as a staircase
+  // breadcrumb, or the items of the section `show` names. The changed item is bold.
+  static summarySvg(model, show) {
+    const esc = Component.esc;
+    const clip = Component.ellipsis;
+    const u = model.updated;
+    const item = Component.lastItem(model);
+    const crumb = item ? Component.breadcrumb(model, item) : { steps: [], owner: null };
+    const sec = Component.shownSection(model, show);
+    const section = show === 'last' || sec >= 0;
+    // Lines: { indent, caption (or null), sec, id, text }.
+    const shown = !section
+      ? crumb.steps.map((st, i) => ({ indent: i, caption: true, sec: st.sec, id: st.id, text: st.text }))
+      : sec < 0 ? [] : model.sections[sec].items.map((it, i) => ({ indent: 0, caption: i === 0, sec: sec, id: it.id, text: it.text }));
+    // The changed item's detail (first line), muted, under it.
+    const lines = shown.reduce((acc, l) => acc.concat([l], item && l.id === item.id && item.detail
+      ? [{ indent: l.indent, caption: false, sec: l.sec, id: null, text: item.detail.split('\n')[0], muted: true }] : []), []);
+    const pal = Component.colors(model);
+    const W = 520;
+    const tops = lines.reduce((acc, l) => acc.concat([acc[acc.length - 1] + (l.caption ? 36 : 20)]), [63]);
+    const H = tops[tops.length - 1] + 8;
+    const sub = (u ? ['Updated ' + u.date] : ['Not updated yet']).concat(crumb.owner ? ['Owner: ' + crumb.owner.text] : []).join(' · ');
+    const rows = lines.map((l, i) => {
+      const x = 16 + l.indent * 16;
+      const y = tops[i] + (l.caption ? 15 : 0); // text baseline
+      const ac = pal[l.sec].ac;
+      const cap = !l.caption ? '' : '<text x="' + (x + 9) + '" y="' + (y - 15) + '" fill="' + ac + '" font-size="9" font-weight="700" letter-spacing=".5">' + esc(clip(model.sections[l.sec].title, 40).toUpperCase()) + '</text>\n';
+      return '<rect x="' + x + '" y="' + (tops[i] - 9) + '" width="3" height="' + (tops[i + 1] - tops[i] - (section && i < lines.length - 1 ? 0 : 9)) + '" fill="' + ac + '"/>\n' + cap +
+        '<text class="' + (l.muted ? 'm' : 'f') + '" fill="' + (l.muted ? '#656d76' : '#1f2328') + '" x="' + (x + 9) + '" y="' + y + '"' + (item && l.id === item.id ? ' font-weight="700"' : '') + '>' + esc(clip(l.text, (l.muted ? 70 : 64) - l.indent * 2)) + '</text>';
+    });
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" role="img" aria-label="' + esc(model.title) + '">\n' +
+      '<title>' + esc(model.title + ' — ' + sub) + '</title>\n' +
+      '<style>.b{fill:#fff;stroke:#d0d7de}.f{fill:#1f2328}.m{fill:#656d76}\n' +
+      '@media (prefers-color-scheme:dark){.b{fill:#0d1117;stroke:#30363d}.f{fill:#e6edf3}.m{fill:#9198a1}}</style>\n' +
+      '<g font-family="-apple-system,Segoe UI,Helvetica,Arial,sans-serif" font-size="12">\n' +
+      '<rect class="b" fill="#fff" stroke="#d0d7de" x=".5" y=".5" width="' + (W - 1) + '" height="' + (H - 1) + '" rx="6"/>\n' +
+      '<text class="f" fill="#1f2328" x="16" y="26" font-size="15" font-weight="700">' + esc(clip(model.title, 60)) + '</text>\n' +
+      '<text class="m" fill="#656d76" x="16" y="45">' + esc(sub) + '</text>\n' +
+      rows.join('\n') + '\n</g></svg>\n';
   }
 
   // =====================================================================
@@ -646,14 +962,56 @@ class Component extends DCLogic {
     return Object.assign({}, model, { sections: model.sections.map((s, i) => (i === sec ? Object.assign({}, s, { items: fn(s.items) }) : s)) });
   }
 
-  static uniqueSlug(model, base) {
-    const used = model.sections.reduce((acc, s) => acc.concat(s.items.map((it) => it.id)), []);
+  static get SLUG_MAX() { return 12; }
+
+  // "Targets to improve" -> "targets-to-i": slug() cut to SLUG_MAX characters
+  // (no trailing hyphen); "item" for empty text.
+  static shortSlug(text) {
+    return Component.slug(text).slice(0, Component.SLUG_MAX).replace(/-+$/, '') || 'item';
+  }
+
+  // The item slug made from `text`: shortSlug(text), numbered ("-2") if
+  // another item (not `selfId`) has it, still within SLUG_MAX.
+  static autoSlug(model, text, selfId) {
+    const used = Component.allItems(model).map((it) => it.id).filter((id) => id !== selfId);
+    const base = Component.shortSlug(text);
     const pick = (n) => {
-      const s = n === 1 ? base : base + '-' + n;
+      const s = n === 1 ? base : base.slice(0, Component.SLUG_MAX - String(n).length - 1).replace(/-+$/, '') + '-' + n;
       return used.indexOf(s) < 0 ? s : pick(n + 1);
     };
     return pick(1);
   }
+
+  // Text edits keep an automatic slug in step; a slug set by hand is left alone.
+  static withAutoText(model, sec, id, text) {
+    const it = model.sections[sec].items.find((x) => x.id === id);
+    const auto = it.id === Component.autoSlug(model, it.text, it.id);
+    const m = Component.withText(model, sec, id, text);
+    const next = Component.autoSlug(m, text, id);
+    return auto && next !== id ? Component.withRenamed(m, id, next) : m;
+  }
+
+  static withSection(model, sec, patch) {
+    return Object.assign({}, model, { sections: model.sections.map((s, i) => (i === sec ? Object.assign({}, s, patch) : s)) });
+  }
+
+  static withItem(model, sec, id, patch) {
+    return Component.mapSection(model, sec, (items) => items.map((it) => (it.id === id ? Object.assign({}, it, patch) : it)));
+  }
+
+  // Renames an item's slug everywhere: its links and the "Last updated" stamp.
+  static withRenamed(model, from, to) {
+    const links = Object.keys(model.links).reduce((acc, k) => {
+      const p = k.split('::').map((x) => (x === from ? to : x));
+      return Object.assign(acc, { [Component.linkKey(p[0], p[1])]: model.links[k] });
+    }, {});
+    const sections = model.sections.map((s) => Object.assign({}, s, { items: s.items.map((it) => (it.id === from ? Object.assign({}, it, { id: to }) : it)) }));
+    const updated = model.updated && model.updated.id === from ? Object.assign({}, model.updated, { id: to }) : model.updated;
+    return Object.assign({}, model, { sections: sections, links: links, updated: updated });
+  }
+
+  // Lines starting "-", "*", "#" or ">" would parse as items, headings or the stamp.
+  static safeText(v) { return v.split('\n').map((l) => l.replace(/^\s*[-*#>]+\s*/, '')).join('\n'); }
 
   static withText(model, sec, id, text) {
     return Component.mapSection(model, sec, (items) => items.map((it) => (it.id === id ? Object.assign({}, it, { text: text }) : it)));
@@ -661,8 +1019,8 @@ class Component extends DCLogic {
 
   static withAdded(model, sec) {
     if (model.sections[sec].items.length >= Component.MAX) throw new Error('bug: this should never happen — add beyond MAX in ' + sec);
-    const id = Component.uniqueSlug(model, 'new-item');
-    return Component.mapSection(model, sec, (items) => items.concat([{ id: id, text: '' }]));
+    const id = Component.autoSlug(model, '', null);
+    return Component.mapSection(model, sec, (items) => items.concat([{ id: id, text: '', detail: '' }]));
   }
 
   static withRemoved(model, sec, id) {
@@ -918,6 +1276,13 @@ class Component extends DCLogic {
     history.replaceState(null, '', u);
   }
 
+  // ?details (any value) shows the details drawer; absent = collapsed.
+  toggleDetails() {
+    const open = !this.state.detailsOpen;
+    Component.setUrlParam('details', open ? '1' : null);
+    this.setState({ detailsOpen: open });
+  }
+
   // ?markdown (any value) shows the markdown panel; absent = hidden.
   togglePanel() {
     const open = !this.state.panelOpen;
@@ -925,26 +1290,97 @@ class Component extends DCLogic {
     this.setState({ panelOpen: open });
   }
 
+  static get NO_PAN() { return { k: 1, dx: 0, dy: 0, moving: false }; }
+
+  panBy(dx, dy) {
+    this.setState((s) => ({ pan: { k: s.pan.k, dx: s.pan.dx + dx, dy: s.pan.dy + dy, moving: true } }));
+  }
+
+  // Zoom by `f` keeping the stage point under (clientX, clientY) still;
+  // no point = the middle of the matrix pane.
+  zoomAt(f, clientX, clientY) {
+    const pane = this.paneEl && this.paneEl.getBoundingClientRect();
+    if (!pane) return;
+    this.setState((s) => {
+      const k = Math.min(6, Math.max(0.2, s.pan.k * f));
+      const c = this.frameCentre;
+      const px = (clientX === undefined ? pane.left + c.x : clientX) - pane.left - c.x;
+      const py = (clientY === undefined ? pane.top + c.y : clientY) - pane.top - c.y;
+      const r = k / s.pan.k;
+      return { pan: { k: k, dx: px - r * (px - s.pan.dx), dy: py - r * (py - s.pan.dy), moving: clientX !== undefined } };
+    });
+  }
+
+  // After an add: focus the new item's input, then (once the stage has
+  // settled) pan just enough to bring it clear of the header and footer.
+  componentDidUpdate() {
+    const id = this.state.newItem;
+    if (id === null) return;
+    this.setState({ newItem: null });
+    const find = () => document.querySelector('input[aria-label$="(' + id + ')"]');
+    const el = find();
+    if (el) el.focus({ preventScroll: true });
+    if (this.newTimer) clearTimeout(this.newTimer);
+    this.newTimer = setTimeout(() => {
+      const box = find();
+      const pane = this.paneEl;
+      if (!box || !pane) return;
+      const r = box.parentElement.getBoundingClientRect();
+      const p = pane.getBoundingClientRect();
+      const M = 16;
+      const top = p.top + this.state.headH + M;
+      const bottom = p.bottom - this.state.footH - M - 16;
+      const dy = r.bottom > bottom ? bottom - r.bottom : r.top < top ? top - r.top : 0;
+      const dx = r.right > p.right - M ? p.right - M - r.right : r.left < p.left + M ? p.left + M - r.left : 0;
+      if (dx || dy) this.setState((s) => ({ pan: { k: s.pan.k, dx: s.pan.dx + dx, dy: s.pan.dy + dy, moving: false } }));
+    }, (this.props.duration ?? 900) + 50);
+  }
+
   focusOn(sec) {
     const model = this.state.model;
     if (!model.sections[sec]) throw new Error('bug: this should never happen — unknown section ' + sec);
     Component.setUrlParam('view', Component.slug(model.sections[sec].title));
     const angle = Component.angles(model)[sec];
-    this.setState((s) => ({ focus: sec, rot: Component.nearest(-angle, s.rot), hover: null, viewMenu: false }));
+    this.setState((s) => ({ focus: sec, rot: Component.nearest(-angle, s.rot), hover: null, viewMenu: false, pan: Component.NO_PAN }));
   }
 
   showAll() {
     Component.setUrlParam('view', null);
-    this.setState((s) => ({ focus: null, rot: Component.nearest(0, s.rot), hover: null, viewMenu: false }));
+    this.setState((s) => ({ focus: null, rot: Component.nearest(0, s.rot), hover: null, viewMenu: false, pan: Component.NO_PAN }));
   }
 
   // Saves under the ?src= file's name, so it can be dropped straight back
   // into the data repo.
+  // Stamps "> Last updated" with what changed since it was opened (or last
+  // saved). Markdown with an error is saved as typed, unstamped.
   downloadMd() {
+    const s = this.state;
     const src = new URLSearchParams(location.search).get('src') || '';
+    const model = s.error ? null : Component.stamped(s.model, s.base, Component.today());
+    const md = model ? Component.serializeMd(model) : s.md;
+    if (model) this.setState({ model: model, md: md, base: model });
+    Component.saveFile(src.split('/').pop().split('?')[0] || 'x-matrix.md', md, 'text/markdown');
+  }
+
+  // Opens summary.html (type 'summary' | 'badge') in a new tab, previewing
+  // what Download would save (handed over in localStorage), with ?src= so it
+  // can offer a link to the saved file.
+  openSummary(type) {
+    const s = this.state;
+    const src = new URLSearchParams(location.search).get('src');
+    const md = s.error ? s.md : Component.serializeMd(Component.stamped(s.model, s.base, Component.today()));
+    try { localStorage.setItem('xm-draft', md); } catch (e) { /* no storage: the page falls back to ?src */ }
+    const u = new URL('summary.html', location.href);
+    if (src) u.searchParams.set('src', src);
+    u.searchParams.set('type', type);
+    u.searchParams.set('draft', '1');
+    window.open(u.href, '_blank');
+  }
+
+  static saveFile(name, text, type) {
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([this.state.md], { type: 'text/markdown' }));
-    a.download = src.split('/').pop().split('?')[0] || 'x-matrix.md';
+    a.href = URL.createObjectURL(new Blob([text], { type: type }));
+    a.download = name;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 0);
   }
@@ -990,7 +1426,7 @@ class Component extends DCLogic {
     Component.setUrlParam('view', null);
     const now = Date.now();
     this.setState((s) => ({
-      model: r.model, md: Component.serializeMd(r.model), error: null, hover: null, draft: null,
+      model: r.model, base: r.model, md: Component.serializeMd(r.model), error: null, hover: null, draft: null,
       focus: null, rot: Component.nearest(0, s.rot),
       history: Component.commit(s.history, Component.snapshot(s), null, now)
     }));
@@ -1021,19 +1457,22 @@ class Component extends DCLogic {
     const model = s.model;
     const secs = model.sections;
     const locked = s.error !== null;
-    const pal = Component.palette();
+    const pal = Component.colors(model);
     const codes = Component.codes(secs);
     const focus = s.focus !== null && s.focus < secs.length ? s.focus : null;
     const L = Component.geometry(model, focus);
     const pairs = Component.pairs(model);
     const R = s.rot;
-    const TOP = 68;
-    const BOT = 100;
+    const TOP = s.headH;
+    const BOT = s.footH + 16; // footer sits 16px off the bottom
 
     // Panel takes a column on wide screens and covers the matrix on narrow ones.
     const wide = s.vw >= 960;
     const panelW = wide ? Component.PANEL_W : s.vw;
-    const mw = s.panelOpen && wide ? s.vw - panelW : s.vw;
+    const DET_W = 360;
+    const detW = wide ? DET_W : s.vw;
+    // ponytail: both panels open on a ~1000px screen leaves little matrix; overlay one if that bites.
+    const mw = wide ? s.vw - (s.panelOpen ? panelW : 0) - (s.detailsOpen ? DET_W : 0) : s.vw;
     const mh = s.vh;
 
     const vars = (i) => { const c = pal[i % pal.length]; return '--ac:' + c.ac + '; --tint:' + c.tint + '; --tint2:' + c.tint2 + ';'; };
@@ -1079,7 +1518,10 @@ class Component extends DCLogic {
     const my = (by0 + by1) / 2;
     const fx = mx * cos + my * sin;
     const fy = -mx * sin + my * cos;
-    const stageStyle = 'transform: translate(' + cx + 'px, ' + cy + 'px) scale(' + S + ') rotate(' + R + 'deg) translate(' + (-fx) + 'px, ' + (-fy) + 'px); transition: transform ' + dur + 'ms ' + EASE + ';';
+    this.frameCentre = { x: cx, y: cy };
+    const P = s.pan;
+    const stageStyle = 'transform: translate(' + (cx + P.dx) + 'px, ' + (cy + P.dy) + 'px) scale(' + S * P.k + ') rotate(' + R + 'deg) translate(' + (-fx) + 'px, ' + (-fy) + 'px);' +
+      (P.moving ? '' : ' transition: transform ' + dur + 'ms ' + EASE + ';');
 
     const strips = stripPolys.map((x) => {
       const sec = secs[x.i];
@@ -1094,7 +1536,7 @@ class Component extends DCLogic {
         labStyle: centred(sh, L.stripLen(x.i, x.j, x.poly), L.T, L.angles[x.i]),
         code: code,
         text: it.text,
-        tip: it.id + (blank ? '' : ': ' + it.text),
+        tip: it.id + (blank ? '' : ': ' + it.text) + (it.detail ? '\n\n' + it.detail : ''),
         shown: blank ? 'Untitled item' : it.text,
         txtCls: blank ? 'empty' : '',
         ph: 'Describe this item…',
@@ -1104,7 +1546,8 @@ class Component extends DCLogic {
         aria: sec.title + ' ' + code + ' (' + it.id + ')',
         delAria: 'Remove ' + code + ' (' + it.id + ')',
         openAria: 'Edit ' + sec.title + ', ' + code + ': ' + (blank ? 'untitled' : it.text),
-        onText: (e) => { const v = e.target.value; this.applyModel((md) => Component.withText(md, x.i, it.id, v), 'text:' + it.id); },
+        onText: (e) => { const v = e.target.value; this.applyModel((md) => Component.withAutoText(md, x.i, it.id, v), 'text:' + x.i + ':' + x.j); },
+        onFocus: () => { if (!s.sel || s.sel.sec !== x.i || s.sel.j !== x.j) this.setState({ sel: { sec: x.i, j: x.j }, slugDraft: null }); },
         onDelete: () => this.applyModel((md) => Component.withRemoved(md, x.i, it.id), null),
         onOpen: () => this.focusOn(x.i)
       };
@@ -1114,7 +1557,7 @@ class Component extends DCLogic {
       style: vars(focus) + sh.css,
       labStyle: centred(sh, L.stripLen(focus, secs[focus].items.length, addPoly), L.T, -R),
       label: 'Add item',
-      onAdd: () => this.applyModel((md) => Component.withAdded(md, focus), null)
+      onAdd: () => { this.applyModel((md) => Component.withAdded(md, focus), null); this.setState({ newItem: Component.autoSlug(model, '', null), sel: { sec: focus, j: secs[focus].items.length } }); }
     }));
 
     const cells = cellPolys.map((x) => {
@@ -1173,15 +1616,74 @@ class Component extends DCLogic {
           const meets = pairs.filter((p) => p.a === focus || p.b === focus).map((p) => secs[p.a === focus ? p.b : p.a].title);
           const hint = sec.attach !== null ? 'Attached to ' + secs[sec.attach].title + '.'
             : meets.length === 0 ? 'A single list.' : 'Meets ' + meets.join(' and ') + '.';
-          return { style: 'color:' + pal[focus % pal.length].ac + ';', eyebrow: sec.label, title: sec.title, hint: hint, nextLabel: secs[nx].title, next: () => this.focusOn(nx) };
+          return { style: 'color:' + pal[focus].ac + ';', eyebrow: sec.label, title: sec.title, hint: hint, nextLabel: secs[nx].title, next: () => this.focusOn(nx) };
         })()
       : { style: '', eyebrow: '', title: '', hint: '', nextLabel: '', next: () => { throw new Error('bug: this should never happen — next() in overview'); } };
+
+    // The details drawer: the focused section's colour, short name and
+    // description, and each of its items' slug and detail.
+    const det = focus === null
+      ? { none: true, some: false, noItem: false, locked: true, color: '#000000', eyebrow: '', title: '', slug: '', slugPh: '', desc: '', items: [], onColor: () => {}, onSlug: () => {}, onDesc: () => {} }
+      : (() => {
+          const sec = secs[focus];
+          const patch = (p) => { if (!locked) this.applyModel((md) => Component.withSection(md, focus, p), 'sec:' + focus + ':' + Object.keys(p)[0]); };
+          return {
+            none: false, some: true, locked: locked,
+            noItem: !(s.sel && s.sel.sec === focus && s.sel.j < sec.items.length),
+            color: pal[focus].ac, eyebrow: sec.label, title: sec.title,
+            onColor: (e) => patch({ color: e.target.value.toUpperCase() }),
+            slug: sec.slug || '',
+            slugPh: Component.shortSlug(sec.title),
+            // Only slug characters, so the markdown always parses back.
+            onSlug: (e) => patch({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/^-+/, '') || null }),
+            desc: sec.desc,
+            // "slug:" / "color:" lines would parse as attributes.
+            onDesc: (e) => patch({ desc: Component.safeText(e.target.value).replace(/^(slug|color)(\s*:)/gim, '$1 $2') }),
+            // Just the selected item (last focused or added) of this section.
+            items: sec.items.map((it, j) => ({ it: it, j: j })).filter((x) => s.sel && s.sel.sec === focus && s.sel.j === x.j).map(({ it, j }) => {
+              const code = codes[focus] + (j + 1);
+              const draft = s.slugDraft && s.slugDraft.id === it.id ? s.slugDraft.text : null;
+              return {
+                code: code,
+                text: it.text.trim() === '' ? 'Untitled item' : it.text,
+                slug: draft === null ? it.id : draft,
+                slugStyle: draft === null ? '' : 'border-color: #B42318;',
+                slugTip: draft === null ? 'Slug: links and badges use it. Follows the text until you change it.' : 'Not applied: a slug needs a letter or digit first and must be unique',
+                slugAria: code + ' slug',
+                onSlug: (e) => {
+                  const v = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+                  if (locked) return;
+                  if (!/^[a-z0-9]/.test(v) || Component.allItems(model).some((o) => o.id === v && o.id !== it.id)) { this.setState({ slugDraft: { id: it.id, text: v } }); return; }
+                  this.applyModel((md) => Component.withRenamed(md, it.id, v), 'slug:' + it.id);
+                  this.setState({ slugDraft: null });
+                },
+                onSlugBlur: () => { if (draft !== null) this.setState({ slugDraft: null }); },
+                detail: it.detail || '',
+                detailAria: code + ' detail',
+                onDetail: (e) => { const v = Component.safeText(e.target.value); if (!locked) this.applyModel((md) => Component.withItem(md, focus, it.id, { detail: v }), 'detail:' + it.id); }
+              };
+            })
+          };
+        })();
 
     return {
       setVp: this.setVp,
       matrixPaneStyle: 'width:' + mw + 'px;',
       panelStyle: 'width:' + panelW + 'px;',
+      detStyle: 'width:' + detW + 'px; right:' + (wide && s.panelOpen ? panelW : 0) + 'px;',
+      detOpen: s.detailsOpen,
+      detClosed: !s.detailsOpen,
+      toggleDetails: () => this.toggleDetails(),
+      det: det,
       stageStyle: stageStyle,
+      setHead: this.setHead,
+      setFoot: this.setFoot,
+      setPane: this.setPane,
+      zoomIn: () => this.zoomAt(1.25),
+      zoomOut: () => this.zoomAt(0.8),
+      zoomFit: () => this.setState({ pan: Component.NO_PAN }),
+      fitDisabled: s.pan.k === 1 && s.pan.dx === 0 && s.pan.dy === 0,
+      zoomPct: Math.round(s.pan.k * 100) + '%',
       tris: tris,
       strips: strips,
       adds: adds,
@@ -1220,6 +1722,8 @@ class Component extends DCLogic {
       copyLabel: s.copied === true ? 'Copied' : s.copied === 'failed' ? 'Copy failed: select the text instead' : 'Copy',
       onCopy: () => this.copyMd(),
       onDownload: () => this.downloadMd(),
+      onBadge: () => this.openSummary('badge'),
+      badgeSrc: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(Component.badgeSvg(Component.stamped(model, s.base, Component.today()))),
       openCreate: () => this.setState({ draft: Component.defaultDraft(), viewMenu: false }),
       cancelCreate: () => this.setState({ draft: null }),
       stopClick: (e) => e.stopPropagation(),

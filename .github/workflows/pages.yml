@@ -22,6 +22,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - run: node summary.test.js && node summary.js examples/acme-plan/x-matrix.md
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .
