@@ -30,7 +30,9 @@ bunx @pritzlaff/hoshin-kanri x-matrix.md   # or npx; no install needed
 ```
 
 It serves the viewer and that file on localhost and opens the browser.
-The file is re-read on each reload. `PORT=8000` fixes the port; `NO_OPEN=1` skips opening a browser.
+The file is re-read on each reload, and **Save** (in the Markdown panel and the Share menu) writes your
+edits back to it, stamped like Download. Save only appears when the CLI serves the file; it answers
+on loopback only and refuses other `Host` names. `PORT=8000` fixes the port; `NO_OPEN=1` skips opening a browser.
 The package has no dependencies: it is `bin/hoshin-kanri.mjs` plus the static page
 (`Main.dc.html`, `support.js`, `vendor/`, `summary.html`, `summary.js`).
 
@@ -57,8 +59,7 @@ MD
 bun run plan
 ```
 
-Edits made in the viewer are not written back to disk: use **Download** in the Markdown
-panel and save over `plan/x-matrix.md`, then commit it.
+**Save** in the viewer writes your edits back to `plan/x-matrix.md`; commit it as usual.
 
 For the [badge and summary images](#badge--summary-images):
 
@@ -68,6 +69,12 @@ bun run badge    # → plan/badge.svg, plan/summary.svg
 ```
 
 `hoshin-kanri badge <x-matrix.md> [out-dir] [show]` takes the same `show` values as `summary.js`.
+
+`hoshin-kanri card <x-matrix.md> [out-dir]` writes `card.json`: the plan as a dashboard card in the
+tool-neutral format `adr card` also writes (version 1: title, status, headline number, a legend
+with one entry per section, links). The headline is the first section's item count; the status is
+"good" when the plan was stamped in the last 90 days, "warn" when older. Links open the hosted viewer
+(`HK_HOST`) on `HK_SRC`, the published markdown's URL (default: the path given), with `?view=` per section.
 
 To publish the plan on GitHub Pages as well, copy `plan/index.html` and `.github/workflows/pages.yml`
 from [examples/bun-app](examples/bun-app), which is this setup end to end.

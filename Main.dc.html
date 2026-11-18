@@ -218,6 +218,9 @@ Create
 <sc-if value="{{ hasSrc }}" hint-placeholder-val="{{ false }}">
 <button class="share-item" role="menuitem" onClick="{{ onCopySrc }}">{{ srcLabel }}<span class="d">{{ srcDesc }}</span></button>
 </sc-if>
+<sc-if value="{{ writable }}" hint-placeholder-val="{{ false }}">
+<button class="share-item" role="menuitem" onClick="{{ onShareSave }}">{{ saveLabel }}<span class="d">Writes the markdown back to {{ saveTitle }}, stamped with what you changed.</span></button>
+</sc-if>
 <button class="share-item" role="menuitem" onClick="{{ onShareDownload }}">Download file<span class="d">The markdown, stamped with what you changed. Keep it in git, or host it and share it with ?src=.</span></button>
 <sc-if value="{{ shareErr }}" hint-placeholder-val="{{ false }}">
 <div role="alert" style="margin: 4px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #7A1610">{{ shareErrText }}
@@ -335,6 +338,9 @@ Next: {{ cap.nextLabel }}
 <span class="pill err">Not applied</span>
 </sc-if>
 <button class="btn sm" onClick="{{ onCopy }}">{{ copyLabel }}</button>
+<sc-if value="{{ writable }}" hint-placeholder-val="{{ false }}">
+<button class="btn sm" onClick="{{ onSave }}" title="{{ saveTitle }}">{{ saveLabel }}</button>
+</sc-if>
 <button class="btn sm" onClick="{{ onDownload }}">Download</button>
 <button class="icon-btn" aria-label="Close markdown panel" onClick="{{ togglePanel }}">
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
@@ -453,6 +459,8 @@ class Component extends DCLogic {
       newItem: null, // id of an item just added: focus it and pan it into view
       open: null, // the Open dialog: { url, busy, error, drag }
       fileName: null, // name of a file opened from disk, for Download
+      writable: false, // ?src= is served by the hoshin-kanri CLI, which accepts Save (a PUT back to it)
+      saved: null, // Save's outcome for the button label: 'ok' | error message | null
       share: null // the Share menu: { link (snapshot, null while packing), copied: 'snap' | 'src' | null, error, fallback }
     }, Component.viewFromUrl(parsed.model));
     this.ro = null;
@@ -542,11 +550,11 @@ class Component extends DCLogic {
     const src = new URLSearchParams(location.search).get('src');
     if (!src) return;
     Component.fetchMd(src)
-      .then((text) => {
+      .then(({ text, writable }) => {
         const r = Component.parseMd(text);
-        this.setState(r.ok
+        this.setState(Object.assign({ writable: writable }, r.ok
           ? Object.assign({ md: text, model: r.model, base: r.model, error: null, history: Component.emptyHistory() }, Component.viewFromUrl(r.model))
-          : { md: text, error: r.error, history: Component.emptyHistory() });
+          : { md: text, error: r.error, history: Component.emptyHistory() }));
       })
       .catch((e) => this.setState({ error: { line: 1, message: e.message + ' Showing the built-in example.' } }));
   }
@@ -598,10 +606,14 @@ class Component extends DCLogic {
       (e) => this.editShare({ error: 'Couldn’t copy (' + e.message + '). Select the link and copy it:', fallback: link }));
   }
 
-  // Fetches markdown (absolute, or relative to this page). Rejects with a message fit to show.
+  // Fetches markdown (absolute, or relative to this page) as { text, writable }. Rejects with a message fit to show.
+  // `writable`: served by the hoshin-kanri CLI, which takes a PUT of the file back to the same URL.
   static fetchMd(src) {
     return fetch(new URL(src, location.href))
-      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then((r) => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text().then((text) => ({ text: text, writable: r.headers.get('x-hoshin-kanri-writable') === '1' }));
+      })
       .catch((e) => { throw new Error('Could not open ' + src + ' (' + e.message + '). A URL on another site must allow cross-origin requests (GitHub Pages and raw.githubusercontent.com do).'); });
   }
 
@@ -616,7 +628,7 @@ class Component extends DCLogic {
     if (!r.ok) Component.setUrlParam('markdown', '1');
     const now = Date.now();
     this.setState((s) => Object.assign({
-      open: null, fileName: opts.fileName, hover: null, sel: null, slugDraft: null,
+      open: null, fileName: opts.fileName, writable: !!opts.writable, saved: null, hover: null, sel: null, slugDraft: null,
       history: Component.commit(s.history, Component.snapshot(s), null, now)
     }, r.ok
       ? { model: r.model, base: r.model, md: text, error: null, focus: null, rot: Component.nearest(0, s.rot), pan: Component.NO_PAN }
@@ -633,7 +645,7 @@ class Component extends DCLogic {
     const url = this.state.open.url.trim();
     if (url === '' || this.state.open.busy) return;
     this.editOpen({ busy: true, error: null });
-    Component.fetchMd(url).then((text) => this.loadMd(text, { src: url, fileName: null }), (e) => this.editOpen({ busy: false, error: e.message }));
+    Component.fetchMd(url).then(({ text, writable }) => this.loadMd(text, { src: url, fileName: null, writable: writable }), (e) => this.editOpen({ busy: false, error: e.message }));
   }
 
   editOpen(patch) { this.setState((s) => (s.open === null ? {} : { open: Object.assign({}, s.open, patch) })); }
@@ -643,6 +655,7 @@ class Component extends DCLogic {
     Object.keys(this.sized).forEach((k) => this.sized[k].disconnect());
     if (this.newTimer) clearTimeout(this.newTimer);
     if (this.copyTimer) clearTimeout(this.copyTimer);
+    if (this.saveTimer) clearTimeout(this.saveTimer);
   }
 
   // =====================================================================
@@ -1050,6 +1063,30 @@ class Component extends DCLogic {
 
   // Shields-style segments: a category's slug on its colour, items' slugs on grey.
   // Default: "<category> : <item>" of the last change.
+  // The plan as a dashboard card (card.json, version 1: the tool-neutral format `adr card` also writes).
+  // `at.src` is where the viewer can fetch the markdown (?src=); `at.label` names it. Links open `host`
+  // on it, one per section with ?view=. A plan updated within 90 days is "good", older is "warn".
+  static card(model, at, host, today) {
+    host = host || 'https://aaronp.github.io/Hoshin-Kanri/';
+    const open = host + '?src=' + encodeURIComponent(at.src).replace(/%2F/gi, '/').replace(/%3A/gi, ':');
+    const pal = Component.colors(model);
+    const legend = model.sections.map((sec, i) => ({ id: Component.secSlug(sec), label: sec.title, color: pal[i].ac, url: open + '&view=' + Component.slug(sec.title) }));
+    const date = model.updated && model.updated.date;
+    const age = date ? (Date.parse(today) - Date.parse(date)) / 864e5 : null;
+    const first = model.sections[0];
+    return {
+      version: 1,
+      title: 'Goals',
+      subtitle: 'Hoshin Kanri',
+      status: !date ? { label: 'Not stamped yet', tone: 'neutral' } : age <= 90 ? { label: 'Updated ' + date, tone: 'good' } : { label: 'Not updated since ' + date, tone: 'warn' },
+      heading: { primary: String(first ? first.items.length : 0), label: first ? first.title.toLowerCase() : 'sections' },
+      legend: legend,
+      report: Object.fromEntries(model.sections.map((sec, i) => [legend[i].id, sec.items.length])),
+      source: { label: at.label, url: open },
+      updated: today
+    };
+  }
+
   static badgeSvg(model, show) {
     const esc = Component.esc;
     const clip = Component.ellipsis;
@@ -1522,10 +1559,31 @@ class Component extends DCLogic {
   downloadMd() {
     const s = this.state;
     const src = new URLSearchParams(location.search).get('src') || '';
-    const model = s.error ? null : Component.stamped(s.model, s.base, Component.today());
-    const md = model ? Component.serializeMd(model) : s.md;
+    const { model, md } = this.toSave();
     if (model) this.setState({ model: model, md: md, base: model });
     Component.saveFile(src.split('/').pop().split('?')[0] || s.fileName || 'x-matrix.md', md, 'text/markdown');
+  }
+
+  // What Download / Save write: stamped with what changed, or the markdown as typed if it has an error.
+  toSave() {
+    const s = this.state;
+    const model = s.error ? null : Component.stamped(s.model, s.base, Component.today());
+    return { model: model, md: model ? Component.serializeMd(model) : s.md };
+  }
+
+  // Writes the file back to ?src= (only offered when the CLI serves it), stamped like Download.
+  saveMd() {
+    const src = new URLSearchParams(location.search).get('src');
+    if (!src || !this.state.writable) return;
+    const { model, md } = this.toSave();
+    fetch(new URL(src, location.href), { method: 'PUT', body: md, headers: { 'content-type': 'text/markdown;charset=utf-8' } })
+      .then((r) => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        this.setState(Object.assign({ saved: 'ok' }, model ? { model: model, md: md, base: model } : {}));
+        if (this.saveTimer) clearTimeout(this.saveTimer);
+        this.saveTimer = setTimeout(() => this.setState({ saved: null }), 1600);
+      })
+      .catch((e) => this.setState({ saved: e.message }));
   }
 
   // Opens summary.html (type 'summary' | 'badge') in a new tab, previewing
@@ -1933,6 +1991,11 @@ class Component extends DCLogic {
       copyLabel: s.copied === true ? 'Copied' : s.copied === 'failed' ? 'Copy failed: select the text instead' : 'Copy',
       onCopy: () => this.copyMd(),
       onDownload: () => this.downloadMd(),
+      writable: s.writable,
+      onSave: () => this.saveMd(),
+      onShareSave: () => { this.setState({ share: null }); this.saveMd(); },
+      saveLabel: s.saved === 'ok' ? 'Saved ✓' : s.saved ? 'Save failed: ' + s.saved : 'Save',
+      saveTitle: (new URLSearchParams(location.search).get('src') || '').split('/').pop().split('?')[0],
       ...(() => {
         const sh = s.share;
         const src = new URLSearchParams(location.search).get('src');

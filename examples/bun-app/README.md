@@ -11,8 +11,8 @@ bun start        # the app itself
 ```
 
 `bun run plan` uses the [`@pritzlaff/hoshin-kanri`](https://www.npmjs.com/package/@pritzlaff/hoshin-kanri)
-dev dependency. Edit `plan/x-matrix.md` and reload the page to see changes. Edits made in
-the viewer are not written back, so use **Download** in its Markdown panel and save over the file.
+dev dependency. Edit `plan/x-matrix.md` and reload the page to see changes, or edit in the
+viewer and use **Save** (Markdown panel or Share menu) to write them back to the file.
 
 No install? `bunx @pritzlaff/hoshin-kanri plan/x-matrix.md` does the same.
 
