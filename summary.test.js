@@ -139,3 +139,34 @@ assert.ok(!C.parseMd(seed.replace('## Targets to improve: Metrics\n', '## Target
   assert.strictEqual(C.card(s1, { label: 'x', src: 'x' }, 'h/', '2027-06-01').status.tone, 'warn');
   assert.strictEqual(C.card(m, { label: 'x', src: 'x' }, 'h/', '2027-06-01').status.tone, 'neutral');
 }
+
+// Card settings (<name>.card.json): titles, big number, legend order / labels / colours, hideZero.
+{
+  const at = { label: 'x-matrix.md', src: 'x-matrix.md' };
+  const ids = C.cardSections(s1).map((x) => x.id);
+  const { prefs, warnings } = C.parsePrefs({
+    title: 'Plan', subtitle: '', heading: { primary: ids[1], label: 'goals this year' },
+    legend: [{ id: ids[2], label: 'Projects', color: '#112233' }, { id: ids[0] }, { id: 'nope' }]
+  }, s1);
+  assert.deepStrictEqual(warnings, ['Unknown legend id "nope" (sections: ' + ids.join(', ') + ')']);
+  const c = C.card(s1, at, 'h/', '2026-11-18', prefs);
+  assert.strictEqual(c.title, 'Plan');
+  assert.strictEqual(c.subtitle, '');
+  assert.deepStrictEqual(c.heading, { primary: String(s1.sections[1].items.length), label: 'goals this year' });
+  assert.deepStrictEqual(c.legend.map((l) => [l.id, l.label]), [[ids[2], 'Projects'], [ids[0], s1.sections[0].title]]);
+  assert.strictEqual(c.legend[0].color, '#112233');
+  assert.strictEqual(C.card(s1, at, 'h/', '2026-11-18', { heading: { primary: 'total' } }).heading.primary,
+    String(s1.sections.reduce((n, x) => n + x.items.length, 0)));
+  assert.throws(() => C.parsePrefs({ colour: 'x' }, s1), /colour: unknown field/);
+  assert.throws(() => C.parsePrefs({ legend: [{ id: ids[0], color: 'red' }] }, s1), /#RRGGBB/);
+  assert.strictEqual(C.parsePrefs({ heading: { primary: 'nope' } }, s1).warnings.length, 1);
+
+  // Badge: the card's counts by default (grey title, then one segment per non-empty legend item).
+  const snap = C.cardSnapshot(s1, prefs, at, 'h/', '2026-11-18');
+  assert.deepStrictEqual(segs(snap.badge).map((x) => x[0]), ['Plan', 'Projects ' + s1.sections[2].items.length, s1.sections[0].title + ' ' + s1.sections[0].items.length]);
+  assert.strictEqual(segs(snap.badge)[1][1], '#112233');
+  // The sidecar (or a show argument) can pick the last-change badges instead.
+  assert.strictEqual(C.cardSnapshot(s1, { badge: { show: 'item' } }, at, 'h/', '2026-11-18').badge, C.badgeSvg(s1, 'item'));
+  assert.strictEqual(C.cardSnapshot(s1, {}, at, 'h/', '2026-11-18', 'crumb').badge, C.badgeSvg(s1, 'crumb'));
+  assert.strictEqual(snap.summary, C.summarySvg(s1));
+}

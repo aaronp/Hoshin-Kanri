@@ -1,86 +1,244 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>X-Matrix summary</title>
+<title>Card designer · X-Matrix</title>
 <style>
-  :root { --fg: #16181D; --muted: #555C68; --line: #E2E5EA; --bg: #fff; --soft: #F6F7F9; --ac: #3346D3; }
-  @media (prefers-color-scheme: dark) { :root { --fg: #e6edf3; --muted: #9198a1; --line: #30363d; --bg: #0d1117; --soft: #161b22; --ac: #7c8cf0; } }
+  :root { --fg: #16181D; --muted: #555C68; --line: #E2E5EA; --bg: #F5F6F8; --panel: #fff; --soft: #F3F4F6; --ac: #3346D3; --err: #b42318; --warn-bg: #FEF6E7; --warn-fg: #7A4B00; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #e6edf3; --muted: #9198a1; --line: #30363d; --bg: #0d1117; --panel: #161b22; --soft: #21262d; --ac: #7c8cf0; --err: #ff7b72; --warn-bg: #3b2e10; --warn-fg: #f2cc60; } }
+  * { box-sizing: border-box; }
   body { font: 14px/1.5 Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif; margin: 0; color: var(--fg); background: var(--bg); }
-  main { max-width: 600px; margin: 0 auto; padding: 28px 16px; display: grid; gap: 18px; }
-  h1 { font-size: 18px; margin: 0; }
-  h1 a { color: inherit; text-decoration: none; }
-  h1 a:hover { color: var(--ac); text-decoration: underline; }
-  fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; }
-  legend { color: var(--muted); font-size: 12px; padding: 0 4px; }
-  select { font: inherit; padding: 4px 6px; max-width: 100%; }
-  #img { min-height: 40px; overflow-x: auto; }
-  #img img { display: block; max-width: none; }
-  .note { color: var(--muted); font-size: 13px; margin: 0; }
-  .err { color: #b42318; }
-  .row { display: flex; flex-wrap: wrap; gap: 8px; }
-  button, .btn { font: inherit; font-size: 13px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); color: var(--fg); cursor: pointer; text-decoration: none; }
-  button:disabled { opacity: .45; cursor: default; }
+  main { max-width: 1200px; margin: 0 auto; padding: 28px 16px 48px; display: grid; gap: 24px; }
+  header { display: grid; gap: 6px; }
+  .eyebrow { font: 500 12px/1.4 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  h1 { font-size: 28px; line-height: 1.15; margin: 0; }
+  h2 { font-size: 13px; margin: 0 0 8px; color: var(--muted); font-weight: 600; }
+  p { margin: 0; }
+  .muted { color: var(--muted); }
+  code { font: 12.5px 'IBM Plex Mono', ui-monospace, monospace; }
   a { color: var(--ac); }
+  .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+  @media (max-width: 900px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+  form, .preview { display: grid; gap: 16px; }
+  .row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  @media (max-width: 520px) { .row { grid-template-columns: minmax(0, 1fr); } }
+  label.f { display: grid; gap: 4px; font-weight: 600; font-size: 13px; }
+  input[type=text], select { font: inherit; font-weight: 400; height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--fg); width: 100%; min-width: 0; }
+  fieldset { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 12px; margin: 0; display: grid; gap: 8px; background: var(--panel); }
+  legend { font-weight: 600; font-size: 13px; padding: 0 4px; }
+  .lrow { display: grid; grid-template-columns: auto auto auto minmax(70px, 120px) minmax(0, 1fr) 44px; gap: 6px; align-items: center; }
+  .lrow input[type=color] { width: 44px; height: 38px; padding: 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+  .lrow .id { font: 12.5px 'IBM Plex Mono', ui-monospace, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lrow.off .id, .lrow.off input[type=text] { opacity: .5; }
+  button, .btn { font: inherit; font-size: 13px; font-weight: 500; height: 36px; padding: 0 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--fg); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+  button:hover, .btn:hover { background: var(--soft); }
+  button:disabled { opacity: .4; cursor: default; }
+  button.pri { background: var(--fg); color: var(--panel); border-color: var(--fg); }
+  .mv { width: 30px; padding: 0; justify-content: center; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .imgbox { overflow-x: auto; padding: 4px 0; }
+  .imgbox img { display: block; max-width: none; }
+  .note { font-size: 13px; color: var(--muted); }
+  .alert { padding: 8px 10px; border-radius: 8px; background: var(--warn-bg); color: var(--warn-fg); font-size: 13px; }
+  .err { color: var(--err); }
+  .check { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  /* The card preview: the same layout the project dashboard draws from card.json. */
+  .card { background: #fff; color: #14171F; border: 1px solid #E2E5EA; border-radius: 18px; padding: 22px; display: grid; gap: 16px; font-family: Inter, system-ui, sans-serif; }
+  .card .top { display: flex; gap: 12px; align-items: flex-start; }
+  .card .t { font-size: 18px; font-weight: 600; }
+  .card .st { font-size: 13px; color: #565E6C; }
+  .card .pill { margin-left: auto; font-size: 12px; font-weight: 600; padding: 5px 10px; border-radius: 999px; white-space: nowrap; text-decoration: none; }
+  .card .num { display: flex; align-items: baseline; gap: 10px; }
+  .card .num b { font-size: 40px; line-height: 1; letter-spacing: -0.02em; }
+  .card .num span { font-size: 14px; color: #565E6C; }
+  .card .bar { display: flex; gap: 3px; height: 8px; }
+  .card .bar span { flex-basis: 0; border-radius: 4px; }
+  .card .lg { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+  .card .lg a { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #3D4452; text-decoration: none; }
+  .card .lg i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+  .card .foot { display: flex; justify-content: space-between; gap: 12px; padding-top: 14px; border-top: 1px solid #EEF0F3; font-size: 12px; }
+  .card .foot code { color: #565E6C; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card .foot a { font-size: 14px; font-weight: 600; text-decoration: none; color: #2F5BEA; white-space: nowrap; }
 </style>
 <main>
-  <h1><a id="title" title="Open the full X-Matrix">X-Matrix summary</a></h1>
-  <fieldset>
-    <legend>Image</legend>
-    <label><input type="radio" name="type" value="badge"> Badge</label>
-    <label><input type="radio" name="type" value="summary"> Summary card</label>
-    <label>Show
-      <select id="show"><option value="item">Last change (category : item)</option><option value="crumb">Breadcrumb to the last change</option><option value="last">Section of the last change</option></select>
-    </label>
-  </fieldset>
-  <div id="img">Loading…</div>
-  <p class="note" id="note"></p>
-  <div class="row">
-    <button id="copyMd">Copy README markdown</button>
-    <a class="btn" id="save">Download SVG</a>
+  <header>
+    <span class="eyebrow">Dashboard card · <span id="sidecarName">x-matrix.card.json</span></span>
+    <h1>Card designer</h1>
+    <p class="muted">What this plan's dashboard card and badge say. Save (or download) the settings next to the markdown;
+      <code>hoshin-kanri card</code> and <code>hoshin-kanri badge</code> read them in CI. <a id="back">Back to the X-Matrix</a></p>
+    <p id="status" class="note">Loading…</p>
+  </header>
+  <div class="cols" hidden id="ui">
+    <form id="form" onsubmit="return false">
+      <div class="row">
+        <label class="f">Title <input type="text" id="title"></label>
+        <label class="f">Subtitle <input type="text" id="subtitle"></label>
+      </div>
+      <div class="row">
+        <label class="f">Big number <select id="primary"></select></label>
+        <label class="f">Label <input type="text" id="label"></label>
+      </div>
+      <fieldset>
+        <legend>Legend</legend>
+        <label class="check"><input type="checkbox" id="hideZero"> Hide sections with no items</label>
+        <div id="legend" style="display: grid; gap: 6px"></div>
+      </fieldset>
+      <label class="f">Source path <input type="text" id="source"></label>
+      <div class="row">
+        <label class="f">Badge shows <select id="badgeShow"></select></label>
+        <label class="f">Summary image shows <select id="summaryShow"></select></label>
+      </div>
+    </form>
+    <section class="preview">
+      <div><h2>Card preview</h2><div id="card"></div></div>
+      <div><h2>Badge</h2><div class="imgbox" id="badge"></div></div>
+      <div><h2>Summary image</h2><div class="imgbox" id="summary"></div></div>
+      <div id="warn" class="alert" hidden></div>
+      <div class="actions">
+        <button class="pri" id="save" hidden>Save</button>
+        <a class="btn" id="dlPrefs">Download settings</a>
+        <a class="btn" id="dlBadge" download="badge.svg">Download badge.svg</a>
+        <a class="btn" id="dlSummary" download="summary.svg">Download summary.svg</a>
+        <button id="copyCard">Copy card.json</button>
+        <button id="copyMd">Copy README markdown</button>
+      </div>
+      <p class="note" id="note"></p>
+    </section>
   </div>
 </main>
 <script>
-  // summary.html?src=<markdown url>&type=summary|badge&show=item|crumb|last|<section slug>
-  // Renders from the markdown alone, using its "> Last updated" line. With
-  // &draft (from the viewer's badge button) it previews the unsaved edits the
-  // viewer left in localStorage. The title links back to the full X-Matrix:
-  // the saved file (src), else a #md= snapshot of what's previewed.
+  // summary.html?src=<markdown url>[&draft=1]: the card designer for an X-Matrix.
+  // Loads the markdown (or, with &draft, the unsaved edits the viewer left in localStorage) and the card settings
+  // beside it (<name>.card.json; missing = defaults). Edits preview live. Save writes the settings back when the
+  // hoshin-kanri CLI serves them; otherwise Download them and commit them next to the markdown.
   const $ = (id) => document.getElementById(id);
   const q = new URLSearchParams(location.search);
   const src = q.get('src');
   const absSrc = src && new URL(src, location.href).href;
+  const mdName = (src || 'x-matrix.md').split('/').pop().split('?')[0];
+  const sidecarName = mdName.replace(/\.md$/i, '') + '.card.json';
+  const sidecarUrl = absSrc && new URL(sidecarName, absSrc).href;
+  const today = new Date().toLocaleDateString('en-CA');
   let matrixUrl = new URL('Main.dc.html' + (src ? '?src=' + encodeURIComponent(absSrc) : ''), location.href).href;
   let draft = null;
   if (q.has('draft')) { try { draft = localStorage.getItem('xm-draft'); } catch (e) { /* fall back to src */ } }
-  let C, model, svgUrl;
+  let C, model, secs, at, form, writable = false, urls = [];
 
-  const opts = () => ({ type: document.querySelector('[name=type]:checked').value, show: $('show').value });
+  // A DOM element: props are set as properties, except hyphenated names (aria-*), which are attributes.
+  const el = (tag, props, ...kids) => {
+    const e = document.createElement(tag);
+    Object.entries(props || {}).forEach(([k, v]) => { if (k.includes('-')) e.setAttribute(k, v); else e[k] = v; });
+    e.append(...kids.filter((k) => k !== null));
+    return e;
+  };
+  const fetchText = (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(url + ': HTTP ' + r.status); return r.text(); });
 
-  // Settings live in the URL, so a reload keeps them.
-  function pageUrl() {
-    const o = opts();
-    const u = new URL(location.pathname, location.href);
-    if (src) u.searchParams.set('src', src);
-    u.searchParams.set('type', o.type);
-    u.searchParams.set('show', o.show);
-    return u.href;
+  // The form, from defaults and the saved settings. Legend rows: the settings' order first (shown), then the rest (hidden).
+  function toForm(prefs) {
+    const d = C.card(model, at, undefined, today, {});
+    const pick = prefs.legend ? prefs.legend.map((l) => l.id) : secs.map((x) => x.id);
+    const rows = pick.concat(secs.map((x) => x.id).filter((id) => !pick.includes(id))).map((id) => {
+      const sec = secs.find((x) => x.id === id);
+      const l = (prefs.legend || []).find((x) => x.id === id) || {};
+      return { id: id, on: pick.includes(id), label: l.label || sec.title, color: l.color || sec.color };
+    });
+    const h = prefs.heading || {};
+    return {
+      title: prefs.title || d.title, subtitle: prefs.subtitle !== undefined ? prefs.subtitle : d.subtitle,
+      primary: h.primary || (secs[0] ? secs[0].id : 'total'), label: h.label || '',
+      hideZero: !!prefs.hideZero, source: (prefs.source && prefs.source.label) || '',
+      badgeShow: (prefs.badge && prefs.badge.show) || 'card', summaryShow: (prefs.summary && prefs.summary.show) || 'crumb',
+      legend: rows
+    };
   }
 
+  // The settings file: only what differs from the defaults, so section renames and recolours still flow through.
+  function toPrefs(f) {
+    const p = {};
+    if (f.title && f.title !== 'Goals') p.title = f.title;
+    if (f.subtitle !== 'Hoshin Kanri') p.subtitle = f.subtitle;
+    const h = {};
+    if (f.primary !== (secs[0] ? secs[0].id : 'total')) h.primary = f.primary;
+    if (f.label) h.label = f.label;
+    if (Object.keys(h).length) p.heading = h;
+    const shown = f.legend.filter((l) => l.on);
+    const plain = shown.length === secs.length && shown.every((l, i) => l.id === secs[i].id && l.label === secs[i].title && l.color.toUpperCase() === secs[i].color.toUpperCase());
+    if (!plain) p.legend = shown.map((l) => {
+      const sec = secs.find((x) => x.id === l.id);
+      const o = { id: l.id };
+      if (l.label && l.label !== sec.title) o.label = l.label;
+      if (l.color.toUpperCase() !== sec.color.toUpperCase()) o.color = l.color.toUpperCase();
+      return o;
+    });
+    if (f.hideZero) p.hideZero = true;
+    if (f.source) p.source = { label: f.source };
+    if (f.badgeShow !== 'card') p.badge = { show: f.badgeShow };
+    if (f.summaryShow !== 'crumb') p.summary = { show: f.summaryShow };
+    return p;
+  }
+
+  function cardHtml(c) {
+    const tones = { good: ['#E3F4EC', '#17603F'], warn: ['#FFEBD9', '#8A3B0B'], bad: ['#FDE2E2', '#9B1C1C'], neutral: ['#EEF0F3', '#3D4452'] };
+    const [bg, fg] = tones[c.status.tone] || tones.neutral;
+    const n = (l) => c.report[l.id] || 0;
+    return el('div', { className: 'card' },
+      el('div', { className: 'top' },
+        el('div', null, el('div', { className: 't', textContent: c.title }), c.subtitle ? el('div', { className: 'st', textContent: c.subtitle }) : null),
+        el('span', { className: 'pill', textContent: c.status.label, style: 'background:' + bg + ';color:' + fg })),
+      el('div', { className: 'num' }, el('b', { textContent: c.heading.primary }), el('span', { textContent: c.heading.label })),
+      el('div', { className: 'bar' }, ...c.legend.map((l) => el('span', { style: 'flex-grow:' + n(l) + ';background:' + (l.color || '#6B7280') }))),
+      el('div', { className: 'lg' }, ...c.legend.map((l) => el('a', { href: l.url, target: '_blank' }, el('i', { style: 'background:' + (l.color || '#6B7280') }), l.label + ' ', el('strong', { textContent: String(n(l)) })))),
+      el('div', { className: 'foot' }, el('code', { textContent: c.source.label }), el('a', { href: c.source.url, target: '_blank', textContent: 'Open →' })));
+  }
+
+  const blobUrl = (text, type) => { const u = URL.createObjectURL(new Blob([text], { type: type })); urls.push(u); return u; };
+
   function render() {
-    const o = opts();
-    // On the card the last change is always shown as a breadcrumb.
-    const itemOpt = $('show').options[0];
-    itemOpt.hidden = itemOpt.disabled = o.type === 'summary';
-    if (o.type === 'summary' && o.show === 'item') { $('show').value = 'crumb'; o.show = 'crumb'; }
-    const svg = o.type === 'badge' ? C.badgeSvg(model, o.show) : C.summarySvg(model, o.show);
-    if (svgUrl) URL.revokeObjectURL(svgUrl);
-    svgUrl = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
-    $('img').innerHTML = '';
-    $('img').appendChild(Object.assign(document.createElement('img'), { src: svgUrl, alt: model.title }));
-    Object.assign($('save'), { href: svgUrl, download: o.type + '.svg' });
-    const u = new URL(pageUrl());
-    if (draft !== null) u.searchParams.set('draft', '1');
-    history.replaceState(null, '', u);
+    urls.forEach(URL.revokeObjectURL); urls = [];
+    const prefs = toPrefs(form);
+    const snap = C.cardSnapshot(model, prefs, at, undefined, today);
+    $('card').replaceChildren(cardHtml(snap.card));
+    $('badge').replaceChildren(el('img', { src: blobUrl(snap.badge, 'image/svg+xml'), alt: 'badge' }));
+    $('summary').replaceChildren(el('img', { src: blobUrl(snap.summary, 'image/svg+xml'), alt: 'summary' }));
+    $('dlBadge').href = blobUrl(snap.badge, 'image/svg+xml');
+    $('dlSummary').href = blobUrl(snap.summary, 'image/svg+xml');
+    Object.assign($('dlPrefs'), { href: blobUrl(JSON.stringify(prefs, null, 2) + '\n', 'application/json'), download: sidecarName, textContent: 'Download ' + sidecarName });
+    $('copyCard').onclick = (e) => copy(e.target, JSON.stringify(snap.card, null, 2) + '\n');
+  }
+
+  function renderLegend() {
+    $('legend').replaceChildren(...form.legend.map((l, i) => {
+      const move = (d) => { const L = form.legend; [L[i], L[i + d]] = [L[i + d], L[i]]; renderLegend(); render(); };
+      const set = (k) => (e) => { l[k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; if (k === 'on') renderLegend(); render(); };
+      return el('div', { className: 'lrow' + (l.on ? '' : ' off') },
+        el('button', { type: 'button', className: 'mv', textContent: '↑', disabled: i === 0, title: 'Move up', onclick: () => move(-1) }),
+        el('button', { type: 'button', className: 'mv', textContent: '↓', disabled: i === form.legend.length - 1, title: 'Move down', onclick: () => move(1) }),
+        el('input', { type: 'checkbox', checked: l.on, title: 'Show on the card and badge', onchange: set('on') }),
+        el('span', { className: 'id', textContent: l.id, title: l.id }),
+        el('input', { type: 'text', value: l.label, 'aria-label': l.id + ' label', oninput: set('label') }),
+        el('input', { type: 'color', value: l.color, 'aria-label': l.id + ' colour', oninput: set('color') }));
+    }));
+  }
+
+  function fill() {
+    ['title', 'subtitle', 'label', 'source'].forEach((k) => { $(k).value = form[k]; $(k).oninput = (e) => { form[k] = e.target.value; render(); }; });
+    $('label').placeholder = 'default: ' + C.card(model, at, undefined, today, { heading: { primary: form.primary } }).heading.label;
+    $('source').placeholder = 'default: ' + at.label;
+    $('primary').replaceChildren(el('option', { value: 'total', textContent: 'Total items' }), ...secs.map((x) => el('option', { value: x.id, textContent: x.title })));
+    $('primary').value = form.primary;
+    $('primary').onchange = (e) => { form.primary = e.target.value; $('label').placeholder = 'default: ' + C.card(model, at, undefined, today, { heading: { primary: form.primary } }).heading.label; render(); };
+    $('hideZero').checked = form.hideZero;
+    $('hideZero').onchange = (e) => { form.hideZero = e.target.checked; render(); };
+    const sections = secs.map((x) => el('option', { value: x.id, textContent: 'Section: ' + x.title }));
+    $('badgeShow').replaceChildren(el('option', { value: 'card', textContent: 'Card counts' }), el('option', { value: 'item', textContent: 'Last change (section : item)' }),
+      el('option', { value: 'crumb', textContent: 'Breadcrumb to the last change' }), el('option', { value: 'last', textContent: 'Section of the last change' }), ...sections);
+    $('summaryShow').replaceChildren(el('option', { value: 'crumb', textContent: 'Breadcrumb to the last change' }), el('option', { value: 'last', textContent: 'Section of the last change' }), ...sections.map((o) => o.cloneNode(true)));
+    ['badgeShow', 'summaryShow'].forEach((k) => {
+      $(k).value = form[k];
+      if ($(k).selectedIndex < 0) $(k).selectedIndex = 0;
+      $(k).onchange = (e) => { form[k] = e.target.value; render(); };
+    });
+    renderLegend();
+    render();
   }
 
   function copy(btn, text) {
@@ -88,32 +246,50 @@
     C.copyText(text).then(() => { btn.textContent = 'Copied ✓'; }, () => { btn.textContent = 'Copy failed'; }).then(() => setTimeout(() => { btn.textContent = was; }, 1600));
   }
 
-  const fetchText = (url) => fetch(url).then((r) => { if (!r.ok) throw new Error(url + ': HTTP ' + r.status); return r.text(); });
+  // Card settings beside the markdown: { prefs, writable }. Missing = defaults.
+  function loadPrefs() {
+    if (!sidecarUrl) return Promise.resolve({ json: {}, writable: false });
+    return fetch(sidecarUrl, { cache: 'no-store' }).then((r) => {
+      const w = r.headers.get('x-hoshin-kanri-writable') === '1';
+      if (r.status === 404) return { json: {}, writable: w };
+      if (!r.ok) throw new Error(sidecarName + ': HTTP ' + r.status);
+      return r.json().then((json) => ({ json: json, writable: w }), () => { throw new Error(sidecarName + ' is not valid JSON'); });
+    }, () => ({ json: {}, writable: false })); // e.g. blocked cross-origin: design from defaults
+  }
 
-  Promise.all([fetchText('Main.dc.html'), draft !== null ? draft : src ? fetchText(absSrc) : Promise.reject(new Error('no ?src= given, and no unsaved edits to preview. Open this from the X-Matrix title bar.'))])
-    .then(([html, md]) => {
-      // The parser and renderer live in the viewer's component; reuse them.
+  Promise.all([fetchText('Main.dc.html'), draft !== null ? draft : src ? fetchText(absSrc) : Promise.reject(new Error('no ?src= given, and no unsaved edits to preview. Open this from the X-Matrix File menu.')), loadPrefs()])
+    .then(([html, md, loaded]) => {
+      // The parser and renderers live in the viewer's component; reuse them.
       const js = /<script[^>]*data-dc-script[^>]*>([\s\S]*?)<\/script>/.exec(html)[1];
       C = new Function('DCLogic', js + '\nreturn Component;')(class {});
       const r = C.parseMd(md);
       if (!r.ok) throw new Error('line ' + r.error.line + ': ' + r.error.message);
       model = r.model;
-      $('title').textContent = model.title;
-      model.sections.forEach((s) => $('show').appendChild(new Option('Section: ' + s.title, C.secSlug(s))));
-      document.querySelector('[name=type][value=' + (q.get('type') === 'summary' ? 'summary' : 'badge') + ']').checked = true;
-      const type = q.get('type') === 'summary' ? 'summary' : 'badge';
-      $('show').value = q.get('show') || (type === 'badge' ? 'item' : 'crumb');
-      if ($('show').selectedIndex < 0) $('show').value = 'crumb';
-      $('title').href = matrixUrl;
-      // Unsaved edits with no file behind them: link back to a snapshot of them.
-      if (draft !== null && !src) C.packMd(md).then((p) => { matrixUrl = new URL('Main.dc.html#md=' + p, location.href).href; $('title').href = matrixUrl; });
-      $('note').textContent = (draft !== null ? 'Previewing your unsaved edits' + (src ? ': Download and save the markdown back to ' + src + ' for the published images to show them. ' : '. ') : '') +
-        'README images must be real files: commit the downloaded SVG next to the markdown, or have your Pages workflow run summary.js.';
-      document.querySelectorAll('[name=type]').forEach((el) => el.addEventListener('change', render));
-      $('show').addEventListener('change', render);
-      // Read at click time: matrixUrl may still be swapping to a snapshot link.
-      $('copyMd').addEventListener('click', (e) => copy(e.target, '[![' + model.title + '](' + opts().type + '.svg)](' + matrixUrl + ')'));
-      render();
+      secs = C.cardSections(model);
+      at = { label: src || mdName, src: absSrc || mdName };
+      const parsed = C.parsePrefs(loaded.json, model);
+      writable = loaded.writable;
+      form = toForm(parsed.prefs);
+      $('sidecarName').textContent = sidecarName;
+      $('back').href = matrixUrl;
+      if (draft !== null && !src) C.packMd(md).then((p) => { matrixUrl = new URL('Main.dc.html#md=' + p, location.href).href; $('back').href = matrixUrl; });
+      $('warn').hidden = parsed.warnings.length === 0;
+      $('warn').textContent = parsed.warnings.join(' · ') + (parsed.warnings.length ? '. Those entries were left out; saving drops them.' : '');
+      $('status').textContent = model.title + (draft !== null ? ' · previewing your unsaved edits' : '');
+      $('note').textContent = writable
+        ? 'Save writes ' + sidecarName + ' next to ' + mdName + '. Run hoshin-kanri card and hoshin-kanri badge (or your snapshot) to update the published files.'
+        : 'Download ' + sidecarName + ' and commit it next to ' + mdName + '; hoshin-kanri card and hoshin-kanri badge read it. README images must be real files: commit badge.svg, or have your Pages workflow run hoshin-kanri badge.';
+      $('save').hidden = !writable;
+      $('save').onclick = (e) => {
+        const btn = e.target;
+        fetch(sidecarUrl, { method: 'PUT', body: JSON.stringify(toPrefs(form), null, 2) + '\n', headers: { 'content-type': 'application/json' } })
+          .then((res) => { if (!res.ok) throw new Error('HTTP ' + res.status); btn.textContent = 'Saved ✓'; }, (err) => { throw err; })
+          .catch((err) => { btn.textContent = 'Save failed: ' + err.message; })
+          .then(() => setTimeout(() => { btn.textContent = 'Save'; }, 1600));
+      };
+      $('copyMd').onclick = (e) => copy(e.target, '[![' + C.card(model, at, undefined, today, toPrefs(form)).title + '](badge.svg)](' + matrixUrl + ')');
+      $('ui').hidden = false;
+      fill();
     })
-    .catch((e) => { $('img').textContent = 'Could not render: ' + e.message; $('img').className = 'err'; });
+    .catch((e) => { $('status').textContent = 'Could not load: ' + e.message; $('status').className = 'note err'; });
 </script>
