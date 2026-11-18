@@ -1,6 +1,6 @@
 {
   "name": "@pritzlaff/hoshin-kanri",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Hoshin Kanri X-Matrix driven by a single markdown file. A static page plus a CLI that serves it locally.",
   "license": "MIT",
   "repository": {
