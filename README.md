@@ -30,7 +30,9 @@ bunx @pritzlaff/hoshin-kanri x-matrix.md   # or npx; no install needed
 ```
 
 It serves the viewer and that file on localhost and opens the browser.
-The file is re-read on each reload. `PORT=8000` fixes the port; `NO_OPEN=1` skips opening a browser.
+The file is re-read on each reload, and **Save** (in the Markdown panel and the Share menu) writes your
+edits back to it, stamped like Download. Save only appears when the CLI serves the file; it answers
+on loopback only and refuses other `Host` names. `PORT=8000` fixes the port; `NO_OPEN=1` skips opening a browser.
 The package has no dependencies: it is `bin/hoshin-kanri.mjs` plus the static page
 (`Main.dc.html`, `support.js`, `vendor/`, `summary.html`, `summary.js`).
 
@@ -57,8 +59,7 @@ MD
 bun run plan
 ```
 
-Edits made in the viewer are not written back to disk: use **Download** in the Markdown
-panel and save over `plan/x-matrix.md`, then commit it.
+**Save** in the viewer writes your edits back to `plan/x-matrix.md`; commit it as usual.
 
 For the [badge and summary images](#badge--summary-images):
 
@@ -68,6 +69,13 @@ bun run badge    # → plan/badge.svg, plan/summary.svg
 ```
 
 `hoshin-kanri badge <x-matrix.md> [out-dir] [show]` takes the same `show` values as `summary.js`.
+
+`hoshin-kanri card <x-matrix.md> [out-dir]` writes `card.json`: the plan as a dashboard card in the
+tool-neutral format `adr card` also writes (version 1: title, status, headline number, a legend
+with one entry per section, links). By default the headline is the first section's item count; the status is
+"good" when the plan was stamped in the last 90 days, "warn" when older. Links open the hosted viewer
+(`HK_HOST`) on `HK_SRC`, the published markdown's URL (default: the path given), with `?view=` per section.
+Both commands read the [card settings](#card-designer-and-settings) beside the markdown.
 
 To publish the plan on GitHub Pages as well, copy `plan/index.html` and `.github/workflows/pages.yml`
 from [examples/bun-app](examples/bun-app), which is this setup end to end.
@@ -84,15 +92,19 @@ Served on GitHub Pages by `.github/workflows/pages.yml` on pushes to `master`
 (Settings → Pages → Source: **GitHub Actions**; the `github-pages` environment
 must allow `master`). `.md` files are served raw, without Jekyll.
 
-**Open** in the title bar loads an X-Matrix from a dropped or chosen `.md`
-file, or from a URL (which then becomes `?src=`, so the page is shareable).
-**Share** (the icon next to Markdown) copies a link, or downloads the file:
+The **File** menu in the title bar:
+
+- **New…** starts a new X-Matrix (name it and choose its sections).
+- **Open…** loads a dropped or chosen `.md` file, or a URL (which then becomes `?src=`, so the page is shareable).
+- **Save** (only when the `hoshin-kanri` CLI serves the file) writes it back, stamped.
+- **Download file** saves the markdown, stamped.
 
 - **Copy link** puts the whole X-Matrix in the link (`#md=`, raw deflate then
   base64url): a snapshot, about 1 KB for a typical plan. Past 8,000
   characters it warns that some mail and chat apps cut long links.
 - **Copy link to file** (when opened with `?src=`) always shows the latest
   saved file.
+- **Design card…** opens the [card designer](#card-designer-and-settings).
 
 Or load any markdown with `?src=<url>` (absolute, or relative to the page), e.g.
 `https://aaronp.github.io/Hoshin-Kanri/?src=examples/acme-plan/x-matrix.md`.
@@ -104,44 +116,63 @@ matrix) and `markdown` (present = show the Markdown panel).
 
 ## Badge & summary images
 
-**Download** in the Markdown panel stamps what you changed since opening
-(or last saving) as a line under the title:
+**Save** and **Download** stamp what you changed since opening (or last saving)
+as a line under the title:
 
 ```md
 > Last updated 2026-11-17: defect-rate
 ```
 
-That line is all the images need, so wherever the markdown is saved they can
-be rebuilt from it:
+That line (and the [card settings](#card-designer-and-settings), if any) is all the images
+need, so wherever the markdown is saved they can be rebuilt from it:
 
 - `summary.svg`: the title, the date, the changed item's owner, and a
   breadcrumb from the first section down to the changed item (with its
   detail), following its strongest intersections (e.g. objective → annual
   objective → priority → target).
-- `badge.svg`: `<section slug> : <item slug>` of the last change, e.g.
-  `kpis : defect-rate`, with the section half on the section's colour. The
-  title bar shows it live, and clicking it opens the page below.
+- `badge.svg`: by default the card's counts, as `adr badge` draws them: the card title on grey, then
+  `<label> <n>` per legend item on its colour, e.g. `Goals | Annual objectives 3 | Top-level priorities 3`.
+  The card settings can pick a last-change badge instead (below).
 
-Both take `show=`: `item` (the badge's default), `crumb` (the breadcrumb to
-the last change, the card's default; on a badge, one item slug per step, each
-on its section's colour), `last` (the last change's section), or a section's
-slug (e.g. `priorities`, to show one level of the plan).
+The `show` choices (in the card settings, or as the CLI's `show` argument): `card` (the badge's default),
+`item` (`<section slug> : <item slug>` of the last change, e.g. `kpis : defect-rate`, as the title bar shows
+it live), `crumb` (the breadcrumb to the last change, the summary's default; on a badge, one item slug per
+step, each on its section's colour), `last` (the last change's section), or a section's slug (e.g.
+`priorities`, to show one level of the plan).
 
-Ways to get them:
+`node summary.js x-matrix.md [out-dir] [show]` writes `badge.svg`, `summary.svg` and `card.json` next to the
+markdown, as `hoshin-kanri badge` and `hoshin-kanri card` do. The example data repo's Pages workflow runs this on every push.
 
-- The badge next to the title opens `summary.html` in a new tab, previewing
-  your unsaved edits. There you can pick badge or card and what to show, copy
-  README markdown, or download the SVG; its title links back to the full
-  X-Matrix.
-- `summary.html?src=<markdown url>&type=badge|summary&show=…` renders the
-  saved file, e.g. [the Acme summary](https://aaronp.github.io/Hoshin-Kanri/summary.html?src=examples/acme-plan/x-matrix.md).
-- `node summary.js x-matrix.md [out-dir] [show]` writes both files next to
-  the markdown. The example data repo's Pages workflow runs this on every push.
+### Card designer and settings
+
+**File → Design card…** (or the badge next to the title) opens `summary.html?src=<markdown url>` in a new tab,
+previewing your unsaved edits. It edits the card settings, `<name>.card.json` beside the markdown (e.g.
+`x-matrix.card.json`), with a live preview of the card, badge and summary image:
+
+```json
+{
+  "title": "Goals",
+  "subtitle": "Hoshin Kanri",
+  "heading": { "primary": "goals", "label": "goals this year" },
+  "legend": [{ "id": "goals", "label": "This year", "color": "#0B6B5F" }, { "id": "priorities" }],
+  "hideZero": false,
+  "source": { "label": "plan/x-matrix.md" },
+  "badge": { "show": "card" },
+  "summary": { "show": "crumb" }
+}
+```
+
+Every field is optional. Legend ids are section short names (their `slug:`); the legend lists the sections
+shown, in order (default: all of them, with their titles and colours). `heading.primary` is `total` (all
+items) or a section's short name (default: the first section). The designer saves only what differs from
+the defaults, so renamed or recoloured sections still flow through. **Save** writes the file when the CLI
+serves the markdown; otherwise **Download** it and commit it next to the markdown. `hoshin-kanri card` and
+`hoshin-kanri badge` read it (and fail on a legend id that names no section).
 
 GitHub README images can't run JS, so embed a real file, linked to the matrix:
 
 ```md
-[![X-Matrix](https://you.github.io/your-plan/summary.svg)](https://you.github.io/your-plan/)
+[![X-Matrix](https://you.github.io/your-plan/badge.svg)](https://you.github.io/your-plan/)
 ```
 
 `make badge` (or `make summary`) renders the Acme example, and `make test` checks the logic.

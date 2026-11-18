@@ -176,7 +176,7 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 </div>
 <label for="xm-title" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Matrix title</label>
 <input id="xm-title" class="title-inp" type="text" value="{{ title }}" onChange="{{ onTitle }}">
-<button class="icon-btn" style="width: auto; height: 32px; padding: 0 6px; flex: 0 0 auto" aria-label="Badge and summary images" title="Badge and summary images: preview, copy a link or download (opens a new tab)" onClick="{{ onBadge }}">
+<button class="icon-btn" style="width: auto; height: 32px; padding: 0 6px; flex: 0 0 auto" aria-label="Design card and badge" title="Card designer: the dashboard card and badge this plan publishes (opens a new tab)" onClick="{{ onBadge }}">
 <img src="{{ badgeSrc }}" alt="" style="height: 20px; display: block">
 </button>
 </div>
@@ -196,21 +196,22 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 </div>
 </sc-if>
 </nav>
-<button class="btn sm" onClick="{{ showOpen }}">
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 4.5v8a1 1 0 001 1h11a1 1 0 001-1V6a1 1 0 00-1-1H8L6.5 3h-4a1 1 0 00-1 1z"></path></svg>
-Open
-</button>
-<button class="btn sm" onClick="{{ openCreate }}">
-<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"></path></svg>
-Create
-</button>
 <div style="position: relative" onKeyDown="{{ onShareKey }}">
-<button class="icon-btn" style="width: 40px; height: 40px" aria-label="Share" title="Share: copy a link or download the file" aria-haspopup="true" aria-expanded="{{ shareOpenStr }}" onClick="{{ toggleShare }}">
-<svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="4" r="2"></circle><circle cx="4.5" cy="9" r="2"></circle><circle cx="13.5" cy="14" r="2"></circle><path d="M6.3 8l5.4-3M6.3 10l5.4 3"></path></svg>
+<button class="btn sm" aria-haspopup="true" aria-expanded="{{ shareOpenStr }}" onClick="{{ toggleShare }}">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 4.5v8a1 1 0 001 1h11a1 1 0 001-1V6a1 1 0 00-1-1H8L6.5 3h-4a1 1 0 00-1 1z"></path></svg>
+File
+<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5l3 3 3-3"></path></svg>
 </button>
 <sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
 <div style="position: fixed; inset: 0; z-index: 4" onClick="{{ closeShare }}"></div>
-<div role="menu" aria-label="Share" style="position: absolute; top: calc(100% + 6px); right: 0; z-index: 5; width: 320px; max-width: calc(100vw - 32px); box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; padding: 6px; background-color: #FFFFFF; border: 1px solid #DADDE3; border-radius: 10px; box-shadow: 0 8px 24px rgba(16,24,40,0.12)">
+<div role="menu" aria-label="File" style="position: absolute; top: calc(100% + 6px); right: 0; z-index: 5; width: 320px; max-width: calc(100vw - 32px); box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; padding: 6px; background-color: #FFFFFF; border: 1px solid #DADDE3; border-radius: 10px; box-shadow: 0 8px 24px rgba(16,24,40,0.12)">
+<button class="share-item" role="menuitem" onClick="{{ onFileNew }}">New…<span class="d">Start a new X-Matrix: name it and choose its sections.</span></button>
+<button class="share-item" role="menuitem" onClick="{{ onFileOpen }}">Open…<span class="d">A .md file from your computer, or a URL.</span></button>
+<sc-if value="{{ writable }}" hint-placeholder-val="{{ false }}">
+<button class="share-item" role="menuitem" onClick="{{ onShareSave }}">{{ saveLabel }}<span class="d">Writes the markdown back to {{ saveTitle }}, stamped with what you changed.</span></button>
+</sc-if>
+<button class="share-item" role="menuitem" onClick="{{ onShareDownload }}">Download file<span class="d">The markdown, stamped with what you changed. Keep it in git, or host it and share it with ?src=.</span></button>
+<div role="separator" style="height: 1px; margin: 4px 6px; background-color: #E2E5EA"></div>
 <button class="share-item" role="menuitem" disabled="{{ snapDisabled }}" onClick="{{ onCopySnap }}">{{ snapLabel }}<span class="d">{{ snapDesc }}</span></button>
 <sc-if value="{{ shareWarn }}" hint-placeholder-val="{{ false }}">
 <div role="note" style="margin: 0 4px 4px; padding: 8px 10px; border-radius: 8px; background-color: #FEF6E7; color: #7A4B00; font-size: 12px; line-height: 1.4">⚠️ {{ shareWarnText }}</div>
@@ -218,7 +219,8 @@ Create
 <sc-if value="{{ hasSrc }}" hint-placeholder-val="{{ false }}">
 <button class="share-item" role="menuitem" onClick="{{ onCopySrc }}">{{ srcLabel }}<span class="d">{{ srcDesc }}</span></button>
 </sc-if>
-<button class="share-item" role="menuitem" onClick="{{ onShareDownload }}">Download file<span class="d">The markdown, stamped with what you changed. Keep it in git, or host it and share it with ?src=.</span></button>
+<div role="separator" style="height: 1px; margin: 4px 6px; background-color: #E2E5EA"></div>
+<button class="share-item" role="menuitem" onClick="{{ onFileDesign }}">Design card…<span class="d">The dashboard card and badge this plan publishes (opens a new tab).</span></button>
 <sc-if value="{{ shareErr }}" hint-placeholder-val="{{ false }}">
 <div role="alert" style="margin: 4px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #7A1610">{{ shareErrText }}
 <input class="field" style="height: 32px; font: 500 11.5px/1 'IBM Plex Mono', ui-monospace, monospace" type="text" readonly value="{{ shareFallback }}" aria-label="Link to copy" onFocus="{{ selectAll }}">
@@ -335,6 +337,9 @@ Next: {{ cap.nextLabel }}
 <span class="pill err">Not applied</span>
 </sc-if>
 <button class="btn sm" onClick="{{ onCopy }}">{{ copyLabel }}</button>
+<sc-if value="{{ writable }}" hint-placeholder-val="{{ false }}">
+<button class="btn sm" onClick="{{ onSave }}" title="{{ saveTitle }}">{{ saveLabel }}</button>
+</sc-if>
 <button class="btn sm" onClick="{{ onDownload }}">Download</button>
 <button class="icon-btn" aria-label="Close markdown panel" onClick="{{ togglePanel }}">
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
@@ -453,6 +458,8 @@ class Component extends DCLogic {
       newItem: null, // id of an item just added: focus it and pan it into view
       open: null, // the Open dialog: { url, busy, error, drag }
       fileName: null, // name of a file opened from disk, for Download
+      writable: false, // ?src= is served by the hoshin-kanri CLI, which accepts Save (a PUT back to it)
+      saved: null, // Save's outcome for the button label: 'ok' | error message | null
       share: null // the Share menu: { link (snapshot, null while packing), copied: 'snap' | 'src' | null, error, fallback }
     }, Component.viewFromUrl(parsed.model));
     this.ro = null;
@@ -542,11 +549,11 @@ class Component extends DCLogic {
     const src = new URLSearchParams(location.search).get('src');
     if (!src) return;
     Component.fetchMd(src)
-      .then((text) => {
+      .then(({ text, writable }) => {
         const r = Component.parseMd(text);
-        this.setState(r.ok
+        this.setState(Object.assign({ writable: writable }, r.ok
           ? Object.assign({ md: text, model: r.model, base: r.model, error: null, history: Component.emptyHistory() }, Component.viewFromUrl(r.model))
-          : { md: text, error: r.error, history: Component.emptyHistory() });
+          : { md: text, error: r.error, history: Component.emptyHistory() }));
       })
       .catch((e) => this.setState({ error: { line: 1, message: e.message + ' Showing the built-in example.' } }));
   }
@@ -598,10 +605,14 @@ class Component extends DCLogic {
       (e) => this.editShare({ error: 'Couldn’t copy (' + e.message + '). Select the link and copy it:', fallback: link }));
   }
 
-  // Fetches markdown (absolute, or relative to this page). Rejects with a message fit to show.
+  // Fetches markdown (absolute, or relative to this page) as { text, writable }. Rejects with a message fit to show.
+  // `writable`: served by the hoshin-kanri CLI, which takes a PUT of the file back to the same URL.
   static fetchMd(src) {
     return fetch(new URL(src, location.href))
-      .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then((r) => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.text().then((text) => ({ text: text, writable: r.headers.get('x-hoshin-kanri-writable') === '1' }));
+      })
       .catch((e) => { throw new Error('Could not open ' + src + ' (' + e.message + '). A URL on another site must allow cross-origin requests (GitHub Pages and raw.githubusercontent.com do).'); });
   }
 
@@ -616,7 +627,7 @@ class Component extends DCLogic {
     if (!r.ok) Component.setUrlParam('markdown', '1');
     const now = Date.now();
     this.setState((s) => Object.assign({
-      open: null, fileName: opts.fileName, hover: null, sel: null, slugDraft: null,
+      open: null, fileName: opts.fileName, writable: !!opts.writable, saved: null, hover: null, sel: null, slugDraft: null,
       history: Component.commit(s.history, Component.snapshot(s), null, now)
     }, r.ok
       ? { model: r.model, base: r.model, md: text, error: null, focus: null, rot: Component.nearest(0, s.rot), pan: Component.NO_PAN }
@@ -633,7 +644,7 @@ class Component extends DCLogic {
     const url = this.state.open.url.trim();
     if (url === '' || this.state.open.busy) return;
     this.editOpen({ busy: true, error: null });
-    Component.fetchMd(url).then((text) => this.loadMd(text, { src: url, fileName: null }), (e) => this.editOpen({ busy: false, error: e.message }));
+    Component.fetchMd(url).then(({ text, writable }) => this.loadMd(text, { src: url, fileName: null, writable: writable }), (e) => this.editOpen({ busy: false, error: e.message }));
   }
 
   editOpen(patch) { this.setState((s) => (s.open === null ? {} : { open: Object.assign({}, s.open, patch) })); }
@@ -643,6 +654,7 @@ class Component extends DCLogic {
     Object.keys(this.sized).forEach((k) => this.sized[k].disconnect());
     if (this.newTimer) clearTimeout(this.newTimer);
     if (this.copyTimer) clearTimeout(this.copyTimer);
+    if (this.saveTimer) clearTimeout(this.saveTimer);
   }
 
   // =====================================================================
@@ -1050,6 +1062,112 @@ class Component extends DCLogic {
 
   // Shields-style segments: a category's slug on its colour, items' slugs on grey.
   // Default: "<category> : <item>" of the last change.
+  // ---------- Dashboard card (card.json) and its settings (<name>.card.json) ----------
+  // card.json, version 1, is the tool-neutral format `adr card` also writes. `at.src` is where the viewer can
+  // fetch the markdown (?src=), `at.label` names it; links open `host` on it, one per section with ?view=.
+  // `prefs` is the sidecar (see parsePrefs): titles, the big number, legend order / labels / colours.
+  // A plan stamped within 90 days is "good", older is "warn", never stamped is "neutral".
+  static card(model, at, host, today, prefs) {
+    prefs = prefs || {};
+    host = host || 'https://aaronp.github.io/Hoshin-Kanri/';
+    const open = host + '?src=' + encodeURIComponent(at.src).replace(/%2F/gi, '/').replace(/%3A/gi, ':');
+    const secs = Component.cardSections(model);
+    const byId = Object.fromEntries(secs.map((x) => [x.id, x]));
+    const legend = (prefs.legend || secs.map((x) => ({ id: x.id })))
+      .filter((l) => byId[l.id] && (!prefs.hideZero || byId[l.id].n > 0))
+      .map((l) => ({ id: l.id, label: l.label || byId[l.id].title, color: l.color || byId[l.id].color, url: open + '&view=' + byId[l.id].view }));
+    const h = prefs.heading || {};
+    const primary = byId[h.primary] || (h.primary === 'total' ? null : secs[0] || null);
+    const date = model.updated && model.updated.date;
+    const age = date ? (Date.parse(today) - Date.parse(date)) / 864e5 : null;
+    return {
+      version: 1,
+      title: prefs.title || 'Goals',
+      subtitle: prefs.subtitle !== undefined ? prefs.subtitle : 'Hoshin Kanri',
+      status: !date ? { label: 'Not stamped yet', tone: 'neutral' } : age <= 90 ? { label: 'Updated ' + date, tone: 'good' } : { label: 'Not updated since ' + date, tone: 'warn' },
+      heading: { primary: String(primary ? primary.n : secs.reduce((n, x) => n + x.n, 0)), label: h.label || (primary ? primary.title.toLowerCase() : 'items') },
+      legend: legend,
+      report: Object.fromEntries(legend.map((l) => [l.id, byId[l.id].n])),
+      source: { label: (prefs.source && prefs.source.label) || at.label, url: open },
+      updated: today
+    };
+  }
+
+  // Sections as card material: { id (short name), title, color, n (items), view (?view= slug) }.
+  static cardSections(model) {
+    const pal = Component.colors(model);
+    return model.sections.map((sec, i) => ({ id: Component.secSlug(sec), title: sec.title, color: pal[i].ac, n: sec.items.length, view: Component.slug(sec.title) }));
+  }
+
+  // Checks a parsed sidecar against the plan: { prefs, warnings }. Wrong types and unknown fields throw;
+  // legend ids or a big number naming no section are dropped with a warning (the CLI treats those as errors).
+  // Badge / summary `show`: 'card' (badge only: the card's counts, the default) | item | crumb | last | <section slug>.
+  static parsePrefs(json, model) {
+    const isObj = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+    const check = (o, path, fields) => {
+      if (o === undefined) return;
+      if (!isObj(o)) throw new Error((path || 'card settings') + ': expected an object');
+      Object.keys(o).forEach((k) => {
+        const t = fields[k];
+        if (!t) throw new Error((path ? path + '.' : '') + k + ': unknown field');
+        if (t === 'list') { if (!Array.isArray(o[k])) throw new Error(k + ': expected a list'); return; }
+        if (typeof t === 'string' && typeof o[k] !== t) throw new Error((path ? path + '.' : '') + k + ': expected a ' + t);
+        if (typeof t === 'object') check(o[k], (path ? path + '.' : '') + k, t);
+      });
+    };
+    const show = { show: 'string' };
+    check(json, '', { title: 'string', subtitle: 'string', heading: { primary: 'string', label: 'string' }, legend: 'list', hideZero: 'boolean', source: { label: 'string' }, badge: show, summary: show });
+    const warnings = [];
+    const ids = Component.cardSections(model).map((x) => x.id);
+    const prefs = Object.assign({}, json);
+    if (prefs.legend !== undefined) {
+      prefs.legend = prefs.legend.filter((l, i) => {
+        check(l, 'legend[' + i + ']', { id: 'string', label: 'string', color: 'string' });
+        if (typeof l.id !== 'string') throw new Error('legend[' + i + '].id: required');
+        if (l.color !== undefined && !/^#[0-9A-Fa-f]{6}$/.test(l.color)) throw new Error('legend[' + i + '].color: expected #RRGGBB');
+        if (ids.includes(l.id)) return true;
+        warnings.push('Unknown legend id "' + l.id + '" (sections: ' + ids.join(', ') + ')');
+        return false;
+      });
+    }
+    const p = prefs.heading && prefs.heading.primary;
+    if (p !== undefined && p !== 'total' && !ids.includes(p)) {
+      warnings.push('Unknown big number "' + p + '" (total or a section: ' + ids.join(', ') + ')');
+      prefs.heading = Object.assign({}, prefs.heading);
+      delete prefs.heading.primary;
+    }
+    return { prefs: prefs, warnings: warnings };
+  }
+
+  // The badge drawn from a card, as adr draws it: a grey title segment, then "<label> <n>" per legend item
+  // with a non-zero count, on the item's colour. Reads only card.json fields.
+  static cardBadgeSvg(card) {
+    const esc = Component.esc;
+    const width = (t) => [...t].reduce((w, ch) => w + (/\p{Extended_Pictographic}/u.test(ch) ? 14 : ch === '️' ? 0 : 7), 0) + 12;
+    const items = card.legend.map((l) => Object.assign({ n: card.report[l.id] || 0 }, l)).filter((l) => l.n > 0);
+    const parts = [{ text: card.title, bg: '#555' }].concat(items.map((l) => ({ text: l.label + ' ' + l.n, bg: l.color || '#6B7280' })));
+    let x = 0;
+    const segs = parts.map((p) => {
+      const w = width(p.text);
+      const seg = '<rect x="' + x + '" width="' + w + '" height="20" fill="' + esc(p.bg) + '"/><text x="' + (x + w / 2) + '" y="14" fill="#fff">' + esc(p.text) + '</text>';
+      x += w;
+      return seg;
+    });
+    const title = esc(card.title + ': ' + (items.length === 0 ? 'none' : items.map((l) => l.n + ' ' + l.label.toLowerCase()).join(', ')));
+    return '<svg xmlns="http://www.w3.org/2000/svg" width="' + x + '" height="20" role="img" aria-label="' + title + '"><title>' + title + '</title>'
+      + '<clipPath id="r"><rect width="' + x + '" height="20" rx="7"/></clipPath>'
+      + '<g clip-path="url(#r)" font-family="Verdana,DejaVu Sans,sans-serif" font-size="11" text-anchor="middle">' + segs.join('') + '</g></svg>\n';
+  }
+
+  // badge.svg, summary.svg and card.json for a plan and its sidecar prefs, as the CLI writes them.
+  // `show` (optional) overrides the sidecar's badge / summary choice.
+  static cardSnapshot(model, prefs, at, host, today, show) {
+    const card = Component.card(model, at, host, today, prefs);
+    const bshow = show || (prefs.badge && prefs.badge.show) || 'card';
+    const sshow = (show && show !== 'card' ? show : null) || (prefs.summary && prefs.summary.show) || undefined;
+    return { card: card, badge: bshow === 'card' ? Component.cardBadgeSvg(card) : Component.badgeSvg(model, bshow), summary: Component.summarySvg(model, sshow) };
+  }
+
   static badgeSvg(model, show) {
     const esc = Component.esc;
     const clip = Component.ellipsis;
@@ -1522,23 +1640,42 @@ class Component extends DCLogic {
   downloadMd() {
     const s = this.state;
     const src = new URLSearchParams(location.search).get('src') || '';
-    const model = s.error ? null : Component.stamped(s.model, s.base, Component.today());
-    const md = model ? Component.serializeMd(model) : s.md;
+    const { model, md } = this.toSave();
     if (model) this.setState({ model: model, md: md, base: model });
     Component.saveFile(src.split('/').pop().split('?')[0] || s.fileName || 'x-matrix.md', md, 'text/markdown');
   }
 
-  // Opens summary.html (type 'summary' | 'badge') in a new tab, previewing
-  // what Download would save (handed over in localStorage), with ?src= so it
-  // can offer a link to the saved file.
-  openSummary(type) {
+  // What Download / Save write: stamped with what changed, or the markdown as typed if it has an error.
+  toSave() {
+    const s = this.state;
+    const model = s.error ? null : Component.stamped(s.model, s.base, Component.today());
+    return { model: model, md: model ? Component.serializeMd(model) : s.md };
+  }
+
+  // Writes the file back to ?src= (only offered when the CLI serves it), stamped like Download.
+  saveMd() {
+    const src = new URLSearchParams(location.search).get('src');
+    if (!src || !this.state.writable) return;
+    const { model, md } = this.toSave();
+    fetch(new URL(src, location.href), { method: 'PUT', body: md, headers: { 'content-type': 'text/markdown;charset=utf-8' } })
+      .then((r) => {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        this.setState(Object.assign({ saved: 'ok' }, model ? { model: model, md: md, base: model } : {}));
+        if (this.saveTimer) clearTimeout(this.saveTimer);
+        this.saveTimer = setTimeout(() => this.setState({ saved: null }), 1600);
+      })
+      .catch((e) => this.setState({ saved: e.message }));
+  }
+
+  // Opens the card designer (summary.html) in a new tab, previewing what Download would save (handed over in
+  // localStorage), with ?src= so it can load and save the card settings beside the file.
+  openSummary() {
     const s = this.state;
     const src = new URLSearchParams(location.search).get('src');
     const md = s.error ? s.md : Component.serializeMd(Component.stamped(s.model, s.base, Component.today()));
     try { localStorage.setItem('xm-draft', md); } catch (e) { /* no storage: the page falls back to ?src */ }
     const u = new URL('summary.html', location.href);
     if (src) u.searchParams.set('src', src);
-    u.searchParams.set('type', type);
     u.searchParams.set('draft', '1');
     window.open(u.href, '_blank');
   }
@@ -1933,6 +2070,11 @@ class Component extends DCLogic {
       copyLabel: s.copied === true ? 'Copied' : s.copied === 'failed' ? 'Copy failed: select the text instead' : 'Copy',
       onCopy: () => this.copyMd(),
       onDownload: () => this.downloadMd(),
+      writable: s.writable,
+      onSave: () => this.saveMd(),
+      onShareSave: () => { this.setState({ share: null }); this.saveMd(); },
+      saveLabel: s.saved === 'ok' ? 'Saved ✓' : s.saved ? 'Save failed: ' + s.saved : 'Save',
+      saveTitle: (new URLSearchParams(location.search).get('src') || '').split('/').pop().split('?')[0],
       ...(() => {
         const sh = s.share;
         const src = new URLSearchParams(location.search).get('src');
@@ -1963,15 +2105,17 @@ class Component extends DCLogic {
           srcDesc: src ? 'Always shows the latest saved ' + src.split('/').pop().split('?')[0] + '.' : '',
           onCopySrc: () => this.copyLink(srcLink, 'src'),
           onShareDownload: () => { this.setState({ share: null }); this.downloadMd(); },
+          onFileNew: () => this.setState({ share: null, draft: Component.defaultDraft(), viewMenu: false }),
+          onFileOpen: () => this.setState({ share: null, open: { url: '', busy: false, error: null, drag: false }, viewMenu: false }),
+          onFileDesign: () => { this.setState({ share: null }); this.openSummary(); },
           shareErr: !!(sh && sh.error),
           shareErrText: sh && sh.error ? sh.error : '',
           shareFallback: sh ? sh.fallback : '',
           selectAll: (e) => e.target.select()
         };
       })(),
-      onBadge: () => this.openSummary('badge'),
+      onBadge: () => this.openSummary(),
       badgeSrc: 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(Component.badgeSvg(Component.stamped(model, s.base, Component.today()))),
-      showOpen: () => this.setState({ open: { url: '', busy: false, error: null, drag: false }, viewMenu: false }),
       hideOpen: () => this.setState({ open: null }),
       onOpenKey: (e) => { if (e.key === 'Escape') this.setState({ open: null }); },
       openOpen: s.open !== null,
@@ -1988,7 +2132,6 @@ class Component extends DCLogic {
       openUrlLabel: s.open && s.open.busy ? 'Opening…' : 'Open',
       openErr: !!(s.open && s.open.error),
       openErrMessage: s.open && s.open.error ? s.open.error : '',
-      openCreate: () => this.setState({ draft: Component.defaultDraft(), viewMenu: false }),
       cancelCreate: () => this.setState({ draft: null }),
       stopClick: (e) => e.stopPropagation(),
       onCreateKey: (e) => { if (e.key === 'Escape') this.setState({ draft: null }); },
