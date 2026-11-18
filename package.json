@@ -1,0 +1,28 @@
+{
+  "name": "@pritzlaff/hoshin-kanri",
+  "version": "1.0.0",
+  "description": "Hoshin Kanri X-Matrix driven by a single markdown file. A static page plus a CLI that serves it locally.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aaronp/Hoshin-Kanri.git"
+  },
+  "homepage": "https://aaronp.github.io/Hoshin-Kanri/",
+  "bin": {
+    "hoshin-kanri": "bin/hoshin-kanri.mjs"
+  },
+  "files": [
+    "bin",
+    "Main.dc.html",
+    "support.js",
+    "vendor",
+    "summary.html",
+    "summary.js"
+  ],
+  "scripts": {
+    "test": "node summary.test.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

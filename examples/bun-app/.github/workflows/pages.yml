@@ -1,0 +1,30 @@
+# Renders the badge images, then publishes plan/ to GitHub Pages (no Jekyll, so x-matrix.md is
+# served raw for the viewer to fetch).
+# One-time setup: Settings → Pages → Source: "GitHub Actions".
+name: Pages
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install && bun run badge   # plan/badge.svg + plan/summary.svg
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: plan
+      - id: deployment
+        uses: actions/deploy-pages@v4

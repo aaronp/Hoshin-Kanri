@@ -23,6 +23,61 @@ rather than copy wholesale.
 `make dev` serves the folder with Bun on http://localhost:8000; some browsers block
 the scripts over file://.
 
+## The `hoshin-kanri` CLI
+
+```sh
+bunx @pritzlaff/hoshin-kanri x-matrix.md   # or npx; no install needed
+```
+
+It serves the viewer and that file on localhost and opens the browser.
+The file is re-read on each reload. `PORT=8000` fixes the port; `NO_OPEN=1` skips opening a browser.
+The package has no dependencies: it is `bin/hoshin-kanri.mjs` plus the static page
+(`Main.dc.html`, `support.js`, `vendor/`, `summary.html`, `summary.js`).
+
+### Adding it to your Bun project
+
+From your project's root:
+
+```sh
+bun add -d @pritzlaff/hoshin-kanri
+bun pm pkg set scripts.plan="hoshin-kanri plan/x-matrix.md"
+mkdir -p plan
+cat > plan/x-matrix.md <<'MD'
+# My plan
+
+## Breakthrough objectives
+- grow: Grow the business
+
+## Annual objectives
+- launch: Launch v1
+
+## Intersections
+- grow -> launch: strong
+MD
+bun run plan
+```
+
+Edits made in the viewer are not written back to disk: use **Download** in the Markdown
+panel and save over `plan/x-matrix.md`, then commit it.
+
+For the [badge and summary images](#badge--summary-images):
+
+```sh
+bun pm pkg set scripts.badge="hoshin-kanri badge plan/x-matrix.md"
+bun run badge    # → plan/badge.svg, plan/summary.svg
+```
+
+`hoshin-kanri badge <x-matrix.md> [out-dir] [show]` takes the same `show` values as `summary.js`.
+
+To publish the plan on GitHub Pages as well, copy `plan/index.html` and `.github/workflows/pages.yml`
+from [examples/bun-app](examples/bun-app), which is this setup end to end.
+
+### Releasing
+
+`npm version patch` (or minor/major), then `make publish` (tests, then `npm publish`; needs
+`npm login` and access to the `@pritzlaff` scope). `make dist` packs the same thing into a
+local `.tgz` without publishing.
+
 ## Hosting & external data
 
 Served on GitHub Pages by `.github/workflows/pages.yml` on pushes to `master`
@@ -89,7 +144,7 @@ GitHub README images can't run JS, so embed a real file, linked to the matrix:
 [![X-Matrix](https://you.github.io/your-plan/summary.svg)](https://you.github.io/your-plan/)
 ```
 
-`make summary` renders the Acme example, and `make test` checks the logic.
+`make badge` (or `make summary`) renders the Acme example, and `make test` checks the logic.
 
 ## Markdown format
 
@@ -143,3 +198,7 @@ on GitHub set Settings → Pages → Source: **GitHub Actions** and allow
 `master` under Settings → Environments → github-pages. Your site at
 `https://you.github.io/your-plan/` redirects here with `?src=` pointing at
 your `x-matrix.md`.
+
+## License
+
+[MIT](LICENSE)

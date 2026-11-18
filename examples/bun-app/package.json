@@ -1,0 +1,13 @@
+{
+  "name": "bun-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "bun index.ts",
+    "plan": "hoshin-kanri plan/x-matrix.md",
+    "badge": "hoshin-kanri badge plan/x-matrix.md"
+  },
+  "devDependencies": {
+    "@pritzlaff/hoshin-kanri": "^1.0.0"
+  }
+}

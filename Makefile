@@ -8,10 +8,19 @@ dev:
 	@echo "Example: http://localhost:$(PORT)/?src=examples/acme-plan/x-matrix.md"
 	@bun -e 'const s = Bun.serve({ hostname: "localhost", port: $(PORT), async fetch(req) { const p = decodeURIComponent(new URL(req.url).pathname); const f = Bun.file("." + (p.endsWith("/") ? p + "index.html" : p)); return (await f.exists()) ? new Response(f) : new Response("Not found", { status: 404 }); } }); console.log("Serving on " + s.url.href + " (Ctrl-C to stop)")'
 
-.PHONY: test summary
+.PHONY: test summary badge
 test:
 	node summary.test.js
 
 # Writes badge.svg + summary.svg next to the example (as the Pages workflow does).
-summary:
-	node summary.js examples/acme-plan/x-matrix.md
+summary badge:
+	node bin/hoshin-kanri.mjs badge examples/acme-plan/x-matrix.md
+
+.PHONY: dist publish
+# Packs the CLI into pritzlaff-hoshin-kanri-<version>.tgz (install with: bun add -d ./pritzlaff-hoshin-kanri-*.tgz)
+dist: test
+	npm pack
+
+# Publishes @pritzlaff/hoshin-kanri to npm. Bump first: npm version patch|minor|major
+publish: test
+	npm publish
