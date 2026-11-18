@@ -14,6 +14,9 @@
   h2 { font-size: 13px; margin: 0 0 8px; color: var(--muted); font-weight: 600; }
   p { margin: 0; }
   .muted { color: var(--muted); }
+  .back { justify-self: start; font-size: 14px; font-weight: 600; text-decoration: none; padding: 6px 0; margin-bottom: 6px; }
+  .back:hover { text-decoration: underline; }
+  .info { max-width: 720px; margin-top: 6px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); color: var(--muted); font-size: 13px; }
   code { font: 12.5px 'IBM Plex Mono', ui-monospace, monospace; }
   a { color: var(--ac); }
   .cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
@@ -61,11 +64,12 @@
 </style>
 <main>
   <header>
+    <a id="back" class="back">← Back</a>
     <span class="eyebrow">Dashboard card · <span id="sidecarName">x-matrix.card.json</span></span>
     <h1>Card designer</h1>
-    <p class="muted">What this plan's dashboard card and badge say. Save (or download) the settings next to the markdown;
-      <code>hoshin-kanri card</code> and <code>hoshin-kanri badge</code> read them in CI. <a id="back">Back to the X-Matrix</a></p>
     <p id="status" class="note">Loading…</p>
+    <p class="info">What this plan's dashboard card and badge say. Save (or download) the settings next to the markdown;
+      <code>hoshin-kanri card</code> and <code>hoshin-kanri badge</code> read them in CI.</p>
   </header>
   <div class="cols" hidden id="ui">
     <form id="form" onsubmit="return false">
