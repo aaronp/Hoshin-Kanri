@@ -16,11 +16,15 @@ test:
 summary badge:
 	node bin/hoshin-kanri.mjs badge examples/acme-plan/x-matrix.md
 
-.PHONY: dist publish
+.PHONY: dist publish bump-patch bump-minor bump-major
 # Packs the CLI into pritzlaff-hoshin-kanri-<version>.tgz (install with: bun add -d ./pritzlaff-hoshin-kanri-*.tgz)
 dist: test
 	npm pack
 
-# Publishes @pritzlaff/hoshin-kanri to npm. Bump first: npm version patch|minor|major
+# Bumps package.json, commits and tags v<version> (needs a clean tree)
+bump-patch bump-minor bump-major:
+	npm version $(@:bump-%=%)
+
+# Publishes @pritzlaff/hoshin-kanri to npm. Bump first: make bump-patch|bump-minor|bump-major
 publish: test
 	npm publish
