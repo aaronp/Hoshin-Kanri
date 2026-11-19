@@ -17,7 +17,8 @@
     "support.js",
     "vendor",
     "summary.html",
-    "summary.js"
+    "summary.js",
+    "spec.md"
   ],
   "scripts": {
     "test": "node summary.test.js"

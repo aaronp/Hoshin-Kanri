@@ -3,6 +3,67 @@
 **[▶ Open the live X-Matrix](https://aaronp.github.io/Hoshin-Kanri/)** ·
 [Acme example](https://aaronp.github.io/Hoshin-Kanri/?src=examples/acme-plan/x-matrix.md)
 
+## Adding it to your project
+
+From your project's root (Bun shown; `npm i -D`, `npm pkg set` and `npm run` work the same):
+
+```sh
+bun add -d @pritzlaff/hoshin-kanri
+bun pm pkg set scripts.goals="hoshin-kanri docs/goals/x-matrix.md"
+mkdir -p docs/goals
+cat > docs/goals/x-matrix.md <<'EOF'
+# My app plan
+
+## Breakthrough objectives
+slug: vision
+- grow: Grow paid users 3× by 2029
+
+## Annual objectives
+slug: goals
+- launch: Launch v1 by March
+- retain: Monthly churn under 3%
+
+## Top-level priorities
+slug: priorities
+- onboarding: Self-serve onboarding
+  Sign-up to first project in under five minutes.
+- billing: Usage-based billing
+
+## Targets to improve
+slug: kpis
+- signups: 500 sign-ups a month
+- churn: Churn report every Friday
+
+## Owners > Top-level priorities
+slug: owners
+- priya: Priya
+- tom: Tom
+
+## Intersections
+- launch -> grow: strong
+- retain -> grow: supporting
+- onboarding -> launch: strong
+- billing -> retain: supporting
+- signups -> onboarding: strong
+- churn -> billing: strong
+- signups -> grow: strong
+- priya -> onboarding: leads
+- tom -> billing: leads
+EOF
+bun run goals    # opens it on localhost
+```
+
+**Save** in the viewer writes your edits back to `docs/goals/x-matrix.md`, stamped with what changed; commit
+it like any other source. The full format is in **[spec.md](spec.md)**, also published at <https://aaronp.github.io/Hoshin-Kanri/spec.md> and shipped in the package as `node_modules/@pritzlaff/hoshin-kanri/spec.md`, so people and agents working in your repo can read the version they run.
+
+`hoshin-kanri card docs/goals/x-matrix.md` and `hoshin-kanri badge docs/goals/x-matrix.md` write
+`card.json`, `badge.svg` and `summary.svg` beside it, for a dashboard or a README badge
+([Card and badge](#card-and-badge)).
+To publish it on GitHub Pages as well, copy `plan/index.html` and `.github/workflows/pages.yml` from
+[examples/bun-app](examples/bun-app), which is this setup end to end with the file in `plan/`
+(change that path in the workflow to match yours).
+[aaronp/template](https://github.com/aaronp/template) is a project with this and its sibling tools (goals, architecture, decisions, risks, schedule, delivery) set up together behind one dashboard.
+
 This is a design mockup created in a visual design tool, exported as a
 standalone page. Treat it as a REFERENCE MOCKUP, not production code:
 the markup and inline styles carry the design's precise values — colors,
@@ -36,36 +97,12 @@ on loopback only and refuses other `Host` names. `PORT=8000` fixes the port; `NO
 The package has no dependencies: it is `bin/hoshin-kanri.mjs` plus the static page
 (`Main.dc.html`, `support.js`, `vendor/`, `summary.html`, `summary.js`).
 
-### Adding it to your Bun project
-
-From your project's root:
-
-```sh
-bun add -d @pritzlaff/hoshin-kanri
-bun pm pkg set scripts.plan="hoshin-kanri plan/x-matrix.md"
-mkdir -p plan
-cat > plan/x-matrix.md <<'MD'
-# My plan
-
-## Breakthrough objectives
-- grow: Grow the business
-
-## Annual objectives
-- launch: Launch v1
-
-## Intersections
-- grow -> launch: strong
-MD
-bun run plan
-```
-
-**Save** in the viewer writes your edits back to `plan/x-matrix.md`; commit it as usual.
+### Card and badge
 
 For the [badge and summary images](#badge--summary-images):
 
 ```sh
-bun pm pkg set scripts.badge="hoshin-kanri badge plan/x-matrix.md"
-bun run badge    # → plan/badge.svg, plan/summary.svg
+hoshin-kanri badge docs/goals/x-matrix.md    # → docs/goals/badge.svg, docs/goals/summary.svg
 ```
 
 `hoshin-kanri badge <x-matrix.md> [out-dir] [show]` takes the same `show` values as `summary.js`.
@@ -76,9 +113,6 @@ with one entry per section, links). By default the headline is the first section
 "good" when the plan was stamped in the last 90 days, "warn" when older. Links open the hosted viewer
 (`HK_HOST`) on `HK_SRC`, the published markdown's URL (default: the path given), with `?view=` per section.
 Both commands read the [card settings](#card-designer-and-settings) beside the markdown.
-
-To publish the plan on GitHub Pages as well, copy `plan/index.html` and `.github/workflows/pages.yml`
-from [examples/bun-app](examples/bun-app), which is this setup end to end.
 
 ### Releasing
 
@@ -179,22 +213,9 @@ GitHub README images can't run JS, so embed a real file, linked to the matrix:
 
 ## Markdown format
 
-`# Title` (optionally followed by a `> Last updated YYYY-MM-DD: slug` line, see above), then 1–8 `## ` sections of `- slug: Title` items. The sections go
-round a polygon from the bottom, clockwise, and each one intersects its
-neighbours: 1 section is a list, 2 a table, 3 a triangle, 4 the classic X,
-5 or more a star. `## Owners > Priorities` attaches a section to just one
-other section (here, Priorities), drawn beyond the next section's rows.
-Under a heading, before its items, `slug: short-name` names the section
-on badges (default: the slugified title, cut to 12 characters, e.g.
-`targets-to-i`), `color: #RRGGBB` sets its colour
-(default: by position), and any other text describes it. Text under an item
-(indented, so it renders as part of the list item) is that item's detail. The
-colour, short name and description, and the selected item's slug and detail, are also
-editable in the **Details** drawer (the tab on the right edge; `?details` keeps
-it open) while you view a section. New items get a slug from their text the
-same way (`Grow exports` → `grow-exports`), kept in step as you type until you
-set one by hand. Links go under `## Intersections` as `- from -> to: strong | supporting`
-(or `leads | supports`).
+`# Title`, then 1–8 `## ` sections of `- slug: Title` items, then `## Intersections` as
+`- from -> to: strong | supporting`. The full format, with a minimal and a complete example, is in
+**[spec.md](spec.md)**.
 
 ## Publishing your own X-Matrix
 
