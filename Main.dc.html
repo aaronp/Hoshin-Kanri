@@ -93,6 +93,16 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 .share-item:hover{background:#F3F4F6}
 .share-item:disabled{cursor:default;background:transparent;color:#6B7280}
 .share-item .d{font-weight:400;font-size:12px;line-height:1.35;color:#555C68}
+.menu-split{position:relative;display:flex}
+.menu-split>.share-item{flex:1;width:auto}
+.menu-chevron{flex:0 0 auto;width:32px;border:0;border-radius:8px;background:transparent;color:#6B7280;font-size:18px;cursor:pointer}
+.menu-chevron:hover{background:#F3F4F6;color:#16181D}
+.menu-sub{display:none;position:absolute;top:-7px;right:calc(100% + 6px);width:220px;flex-direction:column;padding:6px;background:#fff;border:1px solid #DADDE3;border-radius:10px;box-shadow:0 8px 24px rgba(16,24,40,0.12)}
+.menu-sub::after{content:'';position:absolute;left:100%;top:0;width:12px;height:100%}
+.menu-split:hover>.menu-sub,.menu-split.open>.menu-sub{display:flex}
+@media (max-width:640px){.menu-split{flex-wrap:wrap}.menu-sub{position:static;flex-basis:100%;box-shadow:none;margin:2px 0 4px 16px}.menu-split:hover>.menu-sub{display:none}.menu-split.open>.menu-sub{display:flex}}
+.save-status{font:400 11px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;color:#6B7280}
+.save-status.warn{color:#A11B12}
 </style>
 </helmet>
 <div ref="{{ setVp }}" style="position: relative; width: 100%; height: 100vh; min-height: 640px; overflow: hidden; background-color: #F3F4F6; font-family: Inter, system-ui, sans-serif; color: #16181D">
@@ -201,6 +211,9 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 4.5v8a1 1 0 001 1h11a1 1 0 001-1V6a1 1 0 00-1-1H8L6.5 3h-4a1 1 0 00-1 1z"></path></svg>
 File
 <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5l3 3 3-3"></path></svg>
+<sc-if value="{{ writable }}" hint-placeholder-val="{{ false }}">
+<span class="save-status {{ saveStatusCls }}" role="status">{{ saveStatus }}</span>
+</sc-if>
 </button>
 <sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
 <div style="position: fixed; inset: 0; z-index: 4" onClick="{{ closeShare }}"></div>
@@ -208,7 +221,13 @@ File
 <button class="share-item" role="menuitem" onClick="{{ onFileNew }}">New…<span class="d">Start a new X-Matrix: name it and choose its sections.</span></button>
 <button class="share-item" role="menuitem" onClick="{{ onFileOpen }}">Open…<span class="d">A .md file from your computer, or a URL.</span></button>
 <sc-if value="{{ writable }}" hint-placeholder-val="{{ false }}">
+<div class="menu-split {{ saveSubCls }}">
 <button class="share-item" role="menuitem" onClick="{{ onShareSave }}">{{ saveLabel }}<span class="d">Writes the markdown back to {{ saveTitle }}, stamped with what you changed.</span></button>
+<button class="menu-chevron" aria-label="Save options" aria-haspopup="menu" aria-expanded="{{ saveSubStr }}" onClick="{{ toggleSaveSub }}">›</button>
+<div class="menu-sub" role="menu" aria-label="Save options">
+<button class="share-item" role="menuitemcheckbox" aria-checked="{{ autosaveStr }}" onClick="{{ toggleAutosave }}">{{ autosaveLabel }}<span class="d">Writes to {{ saveTitle }} as you edit.</span></button>
+</div>
+</div>
 </sc-if>
 <button class="share-item" role="menuitem" onClick="{{ onShareDownload }}">Download file<span class="d">The markdown, stamped with what you changed. Keep it in git, or host it and share it with ?src=.</span></button>
 <div role="separator" style="height: 1px; margin: 4px 6px; background-color: #E2E5EA"></div>
@@ -460,6 +479,9 @@ class Component extends DCLogic {
       fileName: null, // name of a file opened from disk, for Download
       writable: false, // ?src= is served by the hoshin-kanri CLI, which accepts Save (a PUT back to it)
       saved: null, // Save's outcome for the button label: 'ok' | error message | null
+      disk: null, // Component.diskKey of what is known to be in the ?src= file (opened or last saved)
+      autosave: (() => { try { return localStorage.getItem('hk-autosave') !== '0'; } catch (e) { return true; } })(),
+      saveSub: false, // File › Save › submenu open (it also opens on hover)
       share: null // the Share menu: { link (snapshot, null while packing), copied: 'snap' | 'src' | null, error, fallback }
     }, Component.viewFromUrl(parsed.model));
     this.ro = null;
@@ -533,6 +555,9 @@ class Component extends DCLogic {
   // ?src=<url> loads the markdown from elsewhere (absolute, or relative to
   // this page). The source must allow CORS; GitHub Pages and raw.githubusercontent do.
   componentDidMount() {
+    // Closing the tab inside autosave's debounce still writes the last edit.
+    this.onPageHide = () => { if (this.autoDirty()) this.saveMd(true, true); };
+    window.addEventListener('pagehide', this.onPageHide);
     // #md=<payload>: a shared snapshot, carried in the link itself.
     const packed = /^#md=([A-Za-z0-9_-]+)$/.exec(location.hash);
     if (packed) {
@@ -551,7 +576,7 @@ class Component extends DCLogic {
     Component.fetchMd(src)
       .then(({ text, writable }) => {
         const r = Component.parseMd(text);
-        this.setState(Object.assign({ writable: writable }, r.ok
+        this.setState(Object.assign({ writable: writable, disk: Component.diskKey(r.ok ? r.model : null, text) }, r.ok
           ? Object.assign({ md: text, model: r.model, base: r.model, error: null, history: Component.emptyHistory() }, Component.viewFromUrl(r.model))
           : { md: text, error: r.error, history: Component.emptyHistory() }));
       })
@@ -588,7 +613,7 @@ class Component extends DCLogic {
   // refuses clipboard writes after an await).
   toggleShare() {
     if (this.state.share !== null) { this.setState({ share: null }); return; }
-    this.setState({ share: { link: null, copied: null, error: null, fallback: '' }, viewMenu: false });
+    this.setState({ share: { link: null, copied: null, error: null, fallback: '' }, viewMenu: false, saveSub: false });
     Component.packMd(this.savedMd()).then((p) => {
       const u = new URL(location.pathname, location.href);
       const view = new URLSearchParams(location.search).get('view');
@@ -627,7 +652,7 @@ class Component extends DCLogic {
     if (!r.ok) Component.setUrlParam('markdown', '1');
     const now = Date.now();
     this.setState((s) => Object.assign({
-      open: null, fileName: opts.fileName, writable: !!opts.writable, saved: null, hover: null, sel: null, slugDraft: null,
+      open: null, fileName: opts.fileName, writable: !!opts.writable, disk: Component.diskKey(r.ok ? r.model : null, text), saved: null, hover: null, sel: null, slugDraft: null,
       history: Component.commit(s.history, Component.snapshot(s), null, now)
     }, r.ok
       ? { model: r.model, base: r.model, md: text, error: null, focus: null, rot: Component.nearest(0, s.rot), pan: Component.NO_PAN }
@@ -655,6 +680,8 @@ class Component extends DCLogic {
     if (this.newTimer) clearTimeout(this.newTimer);
     if (this.copyTimer) clearTimeout(this.copyTimer);
     if (this.saveTimer) clearTimeout(this.saveTimer);
+    clearTimeout(this.autoTimer);
+    window.removeEventListener('pagehide', this.onPageHide);
   }
 
   // =====================================================================
@@ -1598,6 +1625,7 @@ class Component extends DCLogic {
   // After an add: focus the new item's input, then (once the stage has
   // settled) pan just enough to bring it clear of the header and footer.
   componentDidUpdate() {
+    this.autosaveTick();
     const id = this.state.newItem;
     if (id === null) return;
     this.setState({ newItem: null });
@@ -1653,18 +1681,54 @@ class Component extends DCLogic {
   }
 
   // Writes the file back to ?src= (only offered when the CLI serves it), stamped like Download.
-  saveMd() {
+  // Autosave (`auto`) writes the same text but leaves the editor alone, so what you are typing is never
+  // reformatted under you. `keepalive` lets the write outlive the page (bodies up to 64KB).
+  saveMd(auto, keepalive) {
     const src = new URLSearchParams(location.search).get('src');
     if (!src || !this.state.writable) return;
+    if (auto && !keepalive && this.inFlight) return; // rescheduled when the write in flight lands
     const { model, md } = this.toSave();
-    fetch(new URL(src, location.href), { method: 'PUT', body: md, headers: { 'content-type': 'text/markdown;charset=utf-8' } })
+    const disk = this.diskKeyOf(this.state);
+    this.inFlight = true;
+    fetch(new URL(src, location.href), { method: 'PUT', body: md, keepalive: !!keepalive, headers: { 'content-type': 'text/markdown;charset=utf-8' } })
       .then((r) => {
         if (!r.ok) throw new Error('HTTP ' + r.status);
-        this.setState(Object.assign({ saved: 'ok' }, model ? { model: model, md: md, base: model } : {}));
+        this.inFlight = false;
+        this.autoKey = null; // edits made meanwhile get their own write
+        if (auto) { this.setState({ disk: disk, saved: null }); return; }
+        this.setState(Object.assign({ saved: 'ok', disk: disk }, model ? { model: model, md: md, base: model } : {}));
         if (this.saveTimer) clearTimeout(this.saveTimer);
         this.saveTimer = setTimeout(() => this.setState({ saved: null }), 1600);
       })
-      .catch((e) => this.setState({ saved: e.message }));
+      .catch((e) => { this.inFlight = false; this.setState({ saved: e.message }); }); // autosave retries on the next edit
+  }
+
+  // What the file holds, ignoring the "Last updated" stamp: the model, or the markdown as typed if it has an error.
+  static diskKey(model, md) { return model ? Component.serializeMd(Object.assign({}, model, { updated: null })) : md; }
+
+  // diskKey of the current state, cached: componentDidUpdate runs on every hover and pan.
+  diskKeyOf(s) {
+    const c = this.keyCache;
+    if (c && c.model === s.model && c.md === s.md && c.error === s.error) return c.key;
+    const key = Component.diskKey(s.error ? null : s.model, s.md);
+    this.keyCache = { model: s.model, md: s.md, error: s.error, key: key };
+    return key;
+  }
+
+  // Autosave is on and there is a parseable change the file doesn't have yet.
+  autoDirty() {
+    const s = this.state;
+    return s.writable && s.autosave && !s.error && this.diskKeyOf(s) !== s.disk;
+  }
+
+  // Debounced so typing is one write; a failed write retries on the next edit.
+  autosaveTick() {
+    if (!this.autoDirty()) { clearTimeout(this.autoTimer); this.autoKey = null; return; }
+    const key = this.diskKeyOf(this.state);
+    if (key === this.autoKey) return;
+    this.autoKey = key;
+    clearTimeout(this.autoTimer);
+    this.autoTimer = setTimeout(() => this.saveMd(true, false), 800);
   }
 
   // Opens the card designer (summary.html) in a new tab, previewing what Download would save (handed over in
@@ -2075,6 +2139,24 @@ class Component extends DCLogic {
       onShareSave: () => { this.setState({ share: null }); this.saveMd(); },
       saveLabel: s.saved === 'ok' ? 'Saved ✓' : s.saved ? 'Save failed: ' + s.saved : 'Save',
       saveTitle: (new URLSearchParams(location.search).get('src') || '').split('/').pop().split('?')[0],
+      ...(() => {
+        const failed = !!s.saved && s.saved !== 'ok';
+        const dirty = s.writable && this.diskKeyOf(s) !== s.disk;
+        return {
+          saveStatus: failed ? 'Not saved' : !dirty ? 'Saved' : s.autosave && !s.error ? 'Saving…' : 'Unsaved',
+          saveStatusCls: failed || (dirty && !(s.autosave && !s.error)) ? 'warn' : ''
+        };
+      })(),
+      saveSubCls: s.saveSub ? 'open' : '',
+      saveSubStr: s.saveSub ? 'true' : 'false',
+      toggleSaveSub: () => this.setState((st) => ({ saveSub: !st.saveSub })),
+      autosaveStr: s.autosave ? 'true' : 'false',
+      autosaveLabel: s.autosave ? '✓ Autosave' : 'Autosave (off)',
+      toggleAutosave: () => {
+        const on = !s.autosave;
+        this.setState({ autosave: on });
+        try { localStorage.setItem('hk-autosave', on ? '1' : '0'); } catch (e) { /* not remembered next time */ }
+      },
       ...(() => {
         const sh = s.share;
         const src = new URLSearchParams(location.search).get('src');

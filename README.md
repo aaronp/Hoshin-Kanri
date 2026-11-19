@@ -130,7 +130,9 @@ The **File** menu in the title bar:
 
 - **New…** starts a new X-Matrix (name it and choose its sections).
 - **Open…** loads a dropped or chosen `.md` file, or a URL (which then becomes `?src=`, so the page is shareable).
-- **Save** (only when the `hoshin-kanri` CLI serves the file) writes it back, stamped.
+- **Save** (only when the `hoshin-kanri` CLI or `make dev` serves the file) writes it back, stamped.
+  **Save ›** holds the **Autosave** toggle (on by default, remembered in the browser): edits are written
+  back 800ms after the last change, and on closing the tab. The status beside **File** shows Saved / Saving… / Unsaved / Not saved.
 - **Download file** saves the markdown, stamped.
 
 - **Copy link** puts the whole X-Matrix in the link (`#md=`, raw deflate then

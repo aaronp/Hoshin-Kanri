@@ -1,12 +1,10 @@
 PORT ?= 8000
 
-# Serves the repo as GitHub Pages does, on localhost: a secure context (so the
-# clipboard works) with a real host for copied links. Not "[::]" / 0.0.0.0,
-# which browsers won't open or treat as insecure.
+# Serves the repo as GitHub Pages does, on localhost (see dev-server.ts); File → Save / Autosave write .md files back.
 .PHONY: dev
 dev:
 	@echo "Example: http://localhost:$(PORT)/?src=examples/acme-plan/x-matrix.md"
-	@bun -e 'const s = Bun.serve({ hostname: "localhost", port: $(PORT), async fetch(req) { const p = decodeURIComponent(new URL(req.url).pathname); const f = Bun.file("." + (p.endsWith("/") ? p + "index.html" : p)); return (await f.exists()) ? new Response(f) : new Response("Not found", { status: 404 }); } }); console.log("Serving on " + s.url.href + " (Ctrl-C to stop)")'
+	@PORT=$(PORT) bun dev-server.ts
 
 .PHONY: test summary badge
 test:
