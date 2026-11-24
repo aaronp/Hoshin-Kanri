@@ -129,6 +129,9 @@ must allow `master`). `.md` files are served raw, without Jekyll.
 The **File** menu in the title bar:
 
 - **New…** starts a new X-Matrix (name it and choose its sections).
+  **New › Wizard…** walks through it step by step: long-term objectives, short-term objectives, priorities,
+  targets and owners, linking each to the step before. Link straight to it with `?wizard`, e.g.
+  `https://aaronp.github.io/Hoshin-Kanri/?wizard`.
 - **Open…** loads a dropped or chosen `.md` file, or a URL (which then becomes `?src=`, so the page is shareable).
 - **Save** (only when the `hoshin-kanri` CLI or `make dev` serves the file) writes it back, stamped.
   **Save ›** holds the **Autosave** toggle (on by default, remembered in the browser): edits are written

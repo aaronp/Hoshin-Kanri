@@ -618,7 +618,7 @@ class Component extends DCLogic {
       autosave: (() => { try { return localStorage.getItem('hk-autosave') !== '0'; } catch (e) { return true; } })(),
       saveSub: false, // File › Save › submenu open (it also opens on hover)
       newSub: false, // File › New › submenu open (it also opens on hover)
-      wizard: null, // File › New › Wizard: see defaultWizard()
+      wizard: new URLSearchParams(location.search).has('wizard') ? Component.defaultWizard() : null, // File › New › Wizard (or ?wizard): see defaultWizard()
       share: null // the Share menu: { link (snapshot, null while packing), copied: 'snap' | 'src' | null, error, fallback }
     }, Component.viewFromUrl(parsed.model));
     this.ro = null;
@@ -2015,6 +2015,7 @@ class Component extends DCLogic {
   finishWizard() {
     const r = Component.wizardModel(this.state.wizard);
     if (!r.ok) { this.setState((s) => ({ wizard: Object.assign({}, s.wizard, { error: r.message }) })); return; }
+    Component.setUrlParam('wizard', null);
     this.replaceModel(r.model, { wizard: null });
   }
 
@@ -2214,7 +2215,7 @@ class Component extends DCLogic {
       onBack: () => go(Math.max(0, w.step - 1)),
       onNext: () => go(Math.min(w.steps.length - 1, w.step + 1)),
       onDone: () => this.finishWizard(),
-      onClose: () => { if (w.steps.every((t) => t.items.length === 0) || window.confirm('Discard this plan?')) this.setState({ wizard: null }); },
+      onClose: () => { if (w.steps.every((t) => t.items.length === 0) || window.confirm('Discard this plan?')) { Component.setUrlParam('wizard', null); this.setState({ wizard: null }); } },
       error: w.error || ''
     };
   }
