@@ -103,6 +103,41 @@ code.k{font:500 11.5px/1 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0
 @media (max-width:640px){.menu-split{flex-wrap:wrap}.menu-sub{position:static;flex-basis:100%;box-shadow:none;margin:2px 0 4px 16px}.menu-split:hover>.menu-sub{display:none}.menu-split.open>.menu-sub{display:flex}}
 .save-status{font:400 11px 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.04em;color:#6B7280}
 .save-status.warn{color:#A11B12}
+.btn.lg{height:52px;padding:0 28px;font-size:16px;font-weight:600;border-radius:12px}
+.btn:disabled{opacity:.4;cursor:default}
+.wiz-step{display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border:0;border-radius:999px;background:transparent;font:500 13px/1 Inter,system-ui,sans-serif;color:#6B7280;cursor:pointer;white-space:nowrap}
+.wiz-step:hover{background:#F3F4F6;color:#16181D}
+.wiz-step .n{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#EEF0F3;font:600 11px/1 'IBM Plex Mono',ui-monospace,monospace}
+.wiz-step.on{color:#16181D;font-weight:650}
+.wiz-step.on .n{background:var(--ac);color:#fff}
+.wiz-head{border:0;border-bottom:1.5px dashed transparent;background:transparent;outline:none;padding:2px 0;min-width:0}
+.wiz-head:hover,.wiz-head:focus{border-bottom-color:var(--ac)}
+.wiz-it{display:block;width:100%;box-sizing:border-box;padding:12px 14px;border:0;border-radius:10px;background:transparent;text-align:left;font:500 15px/1.35 Inter,system-ui,sans-serif;color:#16181D;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wiz-it:hover{background:#F3F4F6}
+.wiz-it.on{background:var(--tint);color:var(--ac);box-shadow:inset 3px 0 0 var(--ac)}
+.wiz-it.empty{color:#6B7280;font-style:italic}
+.wiz-big{width:100%;box-sizing:border-box;border:0;border-bottom:2px solid #E2E5EA;padding:10px 0;background:transparent;outline:none;font:650 30px/1.25 Inter,system-ui,sans-serif;color:#16181D}
+.wiz-big:focus{border-bottom-color:var(--ac)}
+.wiz-big::placeholder{color:#B0B5BE;font-weight:500}
+.mde-wrap{display:flex;flex-direction:column;border:1px solid #D5D9E0;border-radius:8px;background:#fff;overflow:hidden}
+.mde-wrap:focus-within{border-color:#3346D3;box-shadow:0 0 0 2px #DCE0FA}
+.mde-bar{display:flex;gap:2px;padding:3px;border-bottom:1px solid #EEF0F3;background:#FBFBFC}
+.mde-b{min-width:26px;height:24px;padding:0 6px;border:0;border-radius:5px;background:transparent;font:500 12px/1 Inter,system-ui,sans-serif;color:#3A404A;cursor:pointer}
+.mde-b:hover{background:#EEF0F3;color:#16181D}
+.mde{position:relative;min-height:64px;max-height:360px;overflow-y:auto;padding:8px 10px;outline:none;font:400 13px/1.45 Inter,system-ui,sans-serif;color:#16181D;overflow-wrap:anywhere}
+.mde[contenteditable=false]{background:#F6F7F9;color:#6B7280}
+.mde:empty::before,.mde:has(>div:only-child>br:only-child)::before{content:attr(data-ph);color:#7A818C;position:absolute;pointer-events:none}
+.mde h1,.mde h2,.mde h3{margin:4px 0;font-size:1.15em;font-weight:650}
+.mde ul,.mde ol{margin:2px 0;padding-left:22px}
+.mde code{font:500 .9em 'IBM Plex Mono',ui-monospace,monospace;background:#EEF0F3;padding:1px 4px;border-radius:4px}
+.wiz-desc{min-height:180px;padding:14px 16px;font-size:16px;line-height:1.55}
+.mde-wrap:has(.wiz-desc){border-radius:12px}
+.mde-wrap:has(.wiz-desc):focus-within{border-color:var(--ac);box-shadow:0 0 0 3px var(--tint)}
+.wiz-pill{height:36px;padding:0 16px;border:1px solid #D5D9E0;border-radius:999px;background:#fff;font:500 14px/1 Inter,system-ui,sans-serif;color:#3A404A;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wiz-pill:hover{border-color:var(--ac);color:var(--ac)}
+.wiz-pill.on{background:var(--ac);border-color:var(--ac);color:#fff}
+.wiz-cols{flex:1 1 auto;min-height:0;display:grid;grid-template-columns:minmax(220px,340px) 1fr;gap:0}
+@media (max-width:760px){.wiz-cols{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
 </style>
 </helmet>
 <div ref="{{ setVp }}" style="position: relative; width: 100%; height: 100vh; min-height: 640px; overflow: hidden; background-color: #F3F4F6; font-family: Inter, system-ui, sans-serif; color: #16181D">
@@ -218,7 +253,13 @@ File
 <sc-if value="{{ shareOpen }}" hint-placeholder-val="{{ false }}">
 <div style="position: fixed; inset: 0; z-index: 4" onClick="{{ closeShare }}"></div>
 <div role="menu" aria-label="File" style="position: absolute; top: calc(100% + 6px); right: 0; z-index: 5; width: 320px; max-width: calc(100vw - 32px); box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; padding: 6px; background-color: #FFFFFF; border: 1px solid #DADDE3; border-radius: 10px; box-shadow: 0 8px 24px rgba(16,24,40,0.12)">
+<div class="menu-split {{ newSubCls }}">
 <button class="share-item" role="menuitem" onClick="{{ onFileNew }}">New…<span class="d">Start a new X-Matrix: name it and choose its sections.</span></button>
+<button class="menu-chevron" aria-label="New options" aria-haspopup="menu" aria-expanded="{{ newSubStr }}" onClick="{{ toggleNewSub }}">›</button>
+<div class="menu-sub" role="menu" aria-label="New options">
+<button class="share-item" role="menuitem" onClick="{{ onFileWizard }}">Wizard…<span class="d">Step by step: objectives, priorities, targets and owners, then the matrix.</span></button>
+</div>
+</div>
 <button class="share-item" role="menuitem" onClick="{{ onFileOpen }}">Open…<span class="d">A .md file from your computer, or a URL.</span></button>
 <sc-if value="{{ writable }}" hint-placeholder-val="{{ false }}">
 <div class="menu-split {{ saveSubCls }}">
@@ -321,7 +362,17 @@ Next: {{ cap.nextLabel }}
 <input type="color" value="{{ det.color }}" disabled="{{ det.locked }}" onChange="{{ det.onColor }}" aria-label="Section colour" title="Section colour" style="flex: 0 0 auto; width: 40px; height: 34px; padding: 2px; border: 1px solid #D5D9E0; border-radius: 8px; background-color: #fff; cursor: pointer">
 <input class="field" style="flex: 1 1 auto; height: 34px; font: 500 12.5px/1 'IBM Plex Mono', ui-monospace, monospace" type="text" value="{{ det.slug }}" placeholder="{{ det.slugPh }}" disabled="{{ det.locked }}" onChange="{{ det.onSlug }}" aria-label="Section short name, used on badges" title="Short name, used on badges">
 </div>
-<textarea class="field" rows="3" style="height: auto; padding: 8px 10px; resize: vertical; line-height: 1.4; font-size: 13px" placeholder="Section description (optional)" disabled="{{ det.locked }}" onChange="{{ det.onDesc }}" aria-label="Section description" value="{{ det.desc }}"></textarea>
+<div class="mde-wrap">
+<div class="mde-bar" role="toolbar" aria-label="Formatting">
+<button class="mde-b" data-cmd="bold" title="Bold (⌘B)" aria-label="Bold" onMouseDown="{{ mdCmd }}"><b>B</b></button>
+<button class="mde-b" data-cmd="italic" title="Italic (⌘I)" aria-label="Italic" onMouseDown="{{ mdCmd }}"><i>I</i></button>
+<button class="mde-b" data-cmd="heading" title="Heading" aria-label="Heading" onMouseDown="{{ mdCmd }}">H</button>
+<button class="mde-b" data-cmd="insertUnorderedList" title="Bulleted list" aria-label="Bulleted list" onMouseDown="{{ mdCmd }}">•</button>
+<button class="mde-b" data-cmd="insertOrderedList" title="Numbered list" aria-label="Numbered list" onMouseDown="{{ mdCmd }}">1.</button>
+<button class="mde-b" data-cmd="link" title="Link" aria-label="Link" onMouseDown="{{ mdCmd }}">Link</button>
+</div>
+<div class="mde" role="textbox" aria-multiline="true" aria-label="Section description" data-ph="Section description (optional)" ref="{{ det.ed.ref }}" onInput="{{ det.ed.onInput }}"></div>
+</div>
 </div>
 <div style="font: 600 10px/1.2 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: #555C68; margin-top: 6px">Selected item</div>
 <sc-if value="{{ det.noItem }}" hint-placeholder-val="{{ false }}">
@@ -334,7 +385,17 @@ Next: {{ cap.nextLabel }}
 <span style="flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; font-weight: 600; color: #16181D" title="{{ d.text }}">{{ d.text }}</span>
 </div>
 <input class="field" style="height: 32px; font: 500 12px/1 'IBM Plex Mono', ui-monospace, monospace; {{ d.slugStyle }}" type="text" value="{{ d.slug }}" disabled="{{ det.locked }}" onChange="{{ d.onSlug }}" onBlur="{{ d.onSlugBlur }}" aria-label="{{ d.slugAria }}" title="{{ d.slugTip }}">
-<textarea class="field" rows="2" style="height: auto; padding: 7px 10px; resize: vertical; line-height: 1.4; font-size: 12.5px" placeholder="Detail (optional)" disabled="{{ det.locked }}" onChange="{{ d.onDetail }}" aria-label="{{ d.detailAria }}" value="{{ d.detail }}"></textarea>
+<div class="mde-wrap">
+<div class="mde-bar" role="toolbar" aria-label="Formatting">
+<button class="mde-b" data-cmd="bold" title="Bold (⌘B)" aria-label="Bold" onMouseDown="{{ mdCmd }}"><b>B</b></button>
+<button class="mde-b" data-cmd="italic" title="Italic (⌘I)" aria-label="Italic" onMouseDown="{{ mdCmd }}"><i>I</i></button>
+<button class="mde-b" data-cmd="heading" title="Heading" aria-label="Heading" onMouseDown="{{ mdCmd }}">H</button>
+<button class="mde-b" data-cmd="insertUnorderedList" title="Bulleted list" aria-label="Bulleted list" onMouseDown="{{ mdCmd }}">•</button>
+<button class="mde-b" data-cmd="insertOrderedList" title="Numbered list" aria-label="Numbered list" onMouseDown="{{ mdCmd }}">1.</button>
+<button class="mde-b" data-cmd="link" title="Link" aria-label="Link" onMouseDown="{{ mdCmd }}">Link</button>
+</div>
+<div class="mde" role="textbox" aria-multiline="true" aria-label="{{ d.detailAria }}" data-ph="Detail (optional)" ref="{{ d.ed.ref }}" onInput="{{ d.ed.onInput }}"></div>
+</div>
 </div>
 </sc-for>
 </sc-if>
@@ -443,6 +504,80 @@ Next: {{ cap.nextLabel }}
 </div>
 </div>
 </sc-if>
+
+<sc-if value="{{ wizOpen }}" hint-placeholder-val="{{ false }}">
+<div role="dialog" aria-modal="true" aria-label="New plan wizard" style="position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; background-color: #FFFFFF; {{ wiz.vars }}">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 14px 20px; border-bottom: 1px solid #E2E5EA">
+<input class="title-inp" type="text" value="{{ wiz.title }}" aria-label="Plan title" onChange="{{ wiz.onTitle }}" style="width: 280px">
+<nav aria-label="Wizard steps" style="flex: 1 1 auto; display: flex; flex-wrap: wrap; gap: 2px">
+<sc-for list="{{ wiz.steps }}" as="t" hint-placeholder-count="5">
+<button class="wiz-step {{ t.cls }}" aria-current="{{ t.current }}" onClick="{{ t.go }}"><span class="n">{{ t.n }}</span>{{ t.label }}</button>
+</sc-for>
+</nav>
+<button class="icon-btn" aria-label="Close wizard" title="Close (discards this plan)" onClick="{{ wiz.onClose }}">
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"></path></svg>
+</button>
+</div>
+<div style="padding: 28px 32px 18px">
+<div style="font: 650 34px/1.2 Inter, system-ui, sans-serif; color: #16181D">{{ wiz.question }}</div>
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; margin-top: 10px; font-size: 12.5px; color: #555C68">
+<label style="display: flex; align-items: baseline; gap: 6px">Title <input class="wiz-head" type="text" value="{{ wiz.secTitle }}" aria-label="Section title" onChange="{{ wiz.onSecTitle }}" style="font: 600 14px/1.2 Inter, system-ui, sans-serif; color: #16181D; width: 240px"></label>
+<label style="display: flex; align-items: baseline; gap: 6px">Subtitle <input class="wiz-head" type="text" value="{{ wiz.secLabel }}" aria-label="Section subtitle" onChange="{{ wiz.onSecLabel }}" style="font: 600 12px/1.2 'IBM Plex Mono', ui-monospace, monospace; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ac); width: 160px"></label>
+</div>
+</div>
+<div class="wiz-cols" style="border-top: 1px solid #E2E5EA">
+<div style="min-height: 0; overflow-y: auto; padding: 16px; border-right: 1px solid #E2E5EA; background-color: #FBFBFC; display: flex; flex-direction: column; gap: 2px">
+<sc-for list="{{ wiz.items }}" as="it" hint-placeholder-count="3">
+<button class="wiz-it {{ it.cls }}" onClick="{{ it.onClick }}" title="{{ it.label }}">{{ it.label }}</button>
+</sc-for>
+<button class="btn" style="margin-top: 8px; justify-content: center; border-style: dashed; color: var(--ac)" disabled="{{ wiz.addDisabled }}" onClick="{{ wiz.onAdd }}">+ Add {{ wiz.one }}</button>
+</div>
+<div style="min-height: 0; overflow-y: auto; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px">
+<sc-if value="{{ wiz.noSel }}" hint-placeholder-val="{{ false }}">
+<div style="margin: auto; max-width: 360px; text-align: center; font-size: 15px; line-height: 1.5; color: #555C68">{{ wiz.emptyHint }}</div>
+</sc-if>
+<sc-if value="{{ wiz.hasSel }}" hint-placeholder-val="{{ true }}">
+<input class="wiz-big wiz-focus" type="text" value="{{ wiz.selText }}" placeholder="Title" aria-label="Title" onChange="{{ wiz.onSelText }}" onKeyDown="{{ wiz.onSelKey }}">
+<div class="mde-wrap">
+<div class="mde-bar" role="toolbar" aria-label="Formatting">
+<button class="mde-b" data-cmd="bold" title="Bold (⌘B)" aria-label="Bold" onMouseDown="{{ mdCmd }}"><b>B</b></button>
+<button class="mde-b" data-cmd="italic" title="Italic (⌘I)" aria-label="Italic" onMouseDown="{{ mdCmd }}"><i>I</i></button>
+<button class="mde-b" data-cmd="heading" title="Heading" aria-label="Heading" onMouseDown="{{ mdCmd }}">H</button>
+<button class="mde-b" data-cmd="insertUnorderedList" title="Bulleted list" aria-label="Bulleted list" onMouseDown="{{ mdCmd }}">•</button>
+<button class="mde-b" data-cmd="insertOrderedList" title="Numbered list" aria-label="Numbered list" onMouseDown="{{ mdCmd }}">1.</button>
+<button class="mde-b" data-cmd="link" title="Link" aria-label="Link" onMouseDown="{{ mdCmd }}">Link</button>
+</div>
+<div class="mde wiz-desc" role="textbox" aria-multiline="true" aria-label="Description" data-ph="Description (optional)" ref="{{ wiz.ed.ref }}" onInput="{{ wiz.ed.onInput }}"></div>
+</div>
+<sc-if value="{{ wiz.hasPills }}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<div style="font-size: 13px; font-weight: 600; color: #3A404A">{{ wiz.pillsLabel }}</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<sc-for list="{{ wiz.pills }}" as="p" hint-placeholder-count="3">
+<button class="wiz-pill {{ p.cls }}" aria-pressed="{{ p.pressed }}" title="{{ p.label }}" onClick="{{ p.onClick }}">{{ p.label }}</button>
+</sc-for>
+<sc-if value="{{ wiz.noPills }}" hint-placeholder-val="{{ false }}">
+<span style="font-size: 13px; color: #6B7280">Nothing to pick yet: add some on the previous step.</span>
+</sc-if>
+</div>
+</div>
+</sc-if>
+<div><button class="btn sm" onClick="{{ wiz.onRemove }}">Remove</button></div>
+</sc-if>
+</div>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; padding: 16px 24px; border-top: 1px solid #E2E5EA">
+<button class="btn lg" disabled="{{ wiz.isFirst }}" onClick="{{ wiz.onBack }}">Back</button>
+<div role="alert" style="flex: 1 1 auto; font-size: 13px; color: #A11B12; text-align: right">{{ wiz.error }}</div>
+<sc-if value="{{ wiz.notLast }}" hint-placeholder-val="{{ true }}">
+<button class="btn lg pri" onClick="{{ wiz.onNext }}">Next: {{ wiz.nextLabel }} →</button>
+</sc-if>
+<sc-if value="{{ wiz.isLast }}" hint-placeholder-val="{{ false }}">
+<button class="btn lg pri" onClick="{{ wiz.onDone }}">Done</button>
+</sc-if>
+</div>
+</div>
+</sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"duration":{"editor":"range","default":900,"min":200,"max":2000,"step":50,"unit":"ms"},"$preview":{"width":1440,"height":900}}'>
@@ -482,6 +617,8 @@ class Component extends DCLogic {
       disk: null, // Component.diskKey of what is known to be in the ?src= file (opened or last saved)
       autosave: (() => { try { return localStorage.getItem('hk-autosave') !== '0'; } catch (e) { return true; } })(),
       saveSub: false, // File › Save › submenu open (it also opens on hover)
+      newSub: false, // File › New › submenu open (it also opens on hover)
+      wizard: null, // File › New › Wizard: see defaultWizard()
       share: null // the Share menu: { link (snapshot, null while packing), copied: 'snap' | 'src' | null, error, fallback }
     }, Component.viewFromUrl(parsed.model));
     this.ro = null;
@@ -613,7 +750,7 @@ class Component extends DCLogic {
   // refuses clipboard writes after an await).
   toggleShare() {
     if (this.state.share !== null) { this.setState({ share: null }); return; }
-    this.setState({ share: { link: null, copied: null, error: null, fallback: '' }, viewMenu: false, saveSub: false });
+    this.setState({ share: { link: null, copied: null, error: null, fallback: '' }, viewMenu: false, saveSub: false, newSub: false });
     Component.packMd(this.savedMd()).then((p) => {
       const u = new URL(location.pathname, location.href);
       const view = new URLSearchParams(location.search).get('view');
@@ -865,8 +1002,25 @@ class Component extends DCLogic {
       return Object.assign({}, st, { current: 'links', linksHeading: heading });
     };
 
+    // Text under a section (before its items) or an item: its description / detail.
+    const describe = (st, text) => {
+      const cur = st.secs[st.current];
+      const more = (d) => (d ? d + '\n' : '') + text;
+      const withCur = (patch) => Object.assign({}, st, { secs: st.secs.map((x, i) => (i === st.current ? Object.assign({}, x, patch) : x)) });
+      if (cur.items.length === 0) return withCur({ desc: more(cur.desc) });
+      const last = cur.items[cur.items.length - 1];
+      return withCur({ items: cur.items.slice(0, -1).concat([Object.assign({}, last, { detail: more(last.detail) })]) });
+    };
+
     const acc = lines.reduce((st, raw, idx) => {
       const ln = idx + 1;
+      // Inside a ```md block every line is description text, kept as written (less the block's indent).
+      if (st.fence) {
+        const f = st.fence;
+        if (raw.trim() === f.ticks) return Object.assign(describe(st, f.lines.join('\n')), { fence: null });
+        const body = raw.replace(/\s+$/, '').replace(new RegExp('^ {0,' + f.indent + '}'), '');
+        return Object.assign({}, st, { fence: Object.assign({}, f, { lines: f.lines.concat([body]) }) });
+      }
       const line = raw.replace(/\s+$/, '');
       const t = line.trim();
       if (t === '') return st;
@@ -927,7 +1081,8 @@ class Component extends DCLogic {
       if (st.current !== null && st.current !== 'links') {
         const cur = st.secs[st.current];
         const withCur = (patch) => Object.assign({}, st, { secs: st.secs.map((x, i) => (i === st.current ? Object.assign({}, x, patch) : x)) });
-        const more = (d) => (d ? d + '\n' : '') + t;
+        const fo = /^(`{3,})\s*(?:md|markdown)?$/i.exec(t);
+        if (fo) return Object.assign({}, st, { fence: { ticks: fo[1], indent: raw.length - raw.replace(/^ +/, '').length, lines: [], ln: ln } });
         const attr = cur.items.length === 0 ? /^(slug|color)\s*:\s*(.*)$/i.exec(t) : null;
         if (attr) {
           const key = attr[1].toLowerCase();
@@ -936,12 +1091,12 @@ class Component extends DCLogic {
           if (key === 'color' && !/^#[0-9a-fA-F]{6}$/.test(v)) fail(ln, 'A colour looks like "color: #3346D3".');
           return withCur({ [key]: key === 'color' ? v.toUpperCase() : v });
         }
-        if (cur.items.length === 0) return withCur({ desc: more(cur.desc) });
-        const last = cur.items[cur.items.length - 1];
-        return withCur({ items: cur.items.slice(0, -1).concat([Object.assign({}, last, { detail: more(last.detail) })]) });
+        return describe(st, t);
       }
       return fail(ln, 'Unrecognised line. Expected "# Title", a "## Section" heading, or a "- " list item.');
-    }, { title: null, titleLine: 0, updated: null, current: null, secs: [], linksHeading: null, where: {}, pending: [] });
+    }, { title: null, titleLine: 0, updated: null, current: null, secs: [], linksHeading: null, where: {}, pending: [], fence: null });
+
+    if (acc.fence) fail(acc.fence.ln, 'This ' + acc.fence.ticks + 'md block is never closed: end it with a ' + acc.fence.ticks + ' line.');
 
     if (acc.title === null) fail(1, 'The markdown must start with a "# Title" line.');
     if (acc.title === '') fail(acc.titleLine, 'The title is empty.');
@@ -988,9 +1143,9 @@ class Component extends DCLogic {
 
   // Links are written from the later section's item to the earlier one's.
   static serializeMd(model) {
-    const lines = (text) => (text ? text.split('\n') : []);
-    const item = (it) => [('- ' + it.id + ': ' + it.text).replace(/\s+$/, '')].concat(lines(it.detail).map((l) => '  ' + l)).join('\n');
-    const meta = (s) => (s.slug ? ['slug: ' + s.slug] : []).concat(s.color ? ['color: ' + s.color] : [], lines(s.desc));
+    const lines = (text, pad) => Component.descLines(text).map((l) => (l === '' ? '' : pad + l));
+    const item = (it) => [('- ' + it.id + ': ' + it.text).replace(/\s+$/, '')].concat(lines(it.detail, '  ')).join('\n');
+    const meta = (s) => (s.slug ? ['slug: ' + s.slug] : []).concat(s.color ? ['color: ' + s.color] : [], lines(s.desc, ''));
     const head = (s) => '## ' + s.title.trim() + (s.attach === null ? '' : ' > ' + model.sections[s.attach].title.trim()) + (s.label === '' ? '' : ': ' + s.label);
     const blocks = model.sections.map((s) => [head(s)].concat(meta(s), s.items.map(item)).join('\n'));
     const linkLines = Component.pairs(model).reduce((out, p) => {
@@ -1320,7 +1475,14 @@ class Component extends DCLogic {
   }
 
   // Lines starting "-", "*", "#" or ">" would parse as items, headings or the stamp.
-  static safeText(v) { return v.split('\n').map((l) => l.replace(/^\s*[-*#>]+\s*/, '')).join('\n'); }
+  // A description as markdown lines: plain lines when they read back as the same text, else a ```md block.
+  static descLines(text) {
+    if (!text) return [];
+    const ls = text.split('\n');
+    if (ls.every((l) => l.trim() !== '' && l === l.trim() && !/^([-*#>]|```|(slug|color)\s*:)/i.test(l))) return ls;
+    const ticks = '`'.repeat(Math.max(3, ...(text.match(/`+/g) || []).map((m) => m.length + 1)));
+    return [ticks + 'md'].concat(ls.map((l) => l.replace(/\s+$/, '')), [ticks]);
+  }
 
   static withText(model, sec, id, text) {
     return Component.mapSection(model, sec, (items) => items.map((it) => (it.id === id ? Object.assign({}, it, { text: text }) : it)));
@@ -1784,20 +1946,76 @@ class Component extends DCLogic {
 
   editDraft(fn) { this.setState((s) => ({ draft: Object.assign({}, fn(s.draft), { error: null }) })); }
 
-  // Replaces the document (undoable) and drops ?src/?view, which belong to the old one.
   createFromDraft() {
     const d = Component.draftMd(this.state.draft);
     const r = d.ok ? Component.parseMd(d.md) : { ok: false, error: { message: d.message } };
     if (!r.ok) { this.setState((s) => ({ draft: Object.assign({}, s.draft, { error: r.error.message }) })); return; }
+    this.replaceModel(r.model, { draft: null });
+  }
+
+  // Replaces the document (undoable) and drops ?src/?view, which belong to the old one.
+  replaceModel(model, extra) {
     Component.setUrlParam('src', null);
     Component.setUrlParam('view', null);
     Component.clearHash();
     const now = Date.now();
-    this.setState((s) => ({
-      model: r.model, base: r.model, md: Component.serializeMd(r.model), error: null, hover: null, draft: null, fileName: null, pan: Component.NO_PAN,
+    this.setState((s) => Object.assign({
+      model: model, base: model, md: Component.serializeMd(model), error: null, hover: null, fileName: null, writable: false, pan: Component.NO_PAN,
       focus: null, rot: Component.nearest(0, s.rot),
       history: Component.commit(s.history, Component.snapshot(s), null, now)
-    }));
+    }, extra));
+  }
+
+  // ---------- "Wizard": one full-screen step per section ----------
+  // { title, step, nextKey, error, steps: [{ title, label, attach, link, sel, items: [{ key, text, detail, links: [key] }] }] }
+  // `link`: the step whose items this step's pills pick from (and are linked to); `sel`: the selected item's key.
+
+  static defaultWizard() {
+    const steps = [
+      ['Long-term objectives', '3–5 years', null, null],
+      ['Short-term objectives', 'This year', null, 0],
+      ['Top-level priorities', 'Improvement', null, 1],
+      ['Targets to improve', 'Metrics', null, 2],
+      // Owners hang off the priorities, as in the classic X-matrix, so they link to those.
+      ['Owners', 'Resources', 2, 2]
+    ].map(([title, label, attach, link]) => ({ title: title, label: label, attach: attach, link: link, sel: null, items: [] }));
+    return { title: 'New plan', step: 0, steps: steps, nextKey: 0, error: null };
+  }
+
+  // Wizard -> model, checked by a markdown round trip. { ok, model } or { ok: false, message }.
+  static wizardModel(w) {
+    const names = w.steps.map((st) => st.title.trim());
+    const bad = names.findIndex((n) => n === '' || n.toLowerCase() === 'intersections');
+    if (bad >= 0) return { ok: false, message: 'Step ' + (bad + 1) + ' needs a title (not "Intersections").' };
+    if (new Set(names.map((n) => n.toLowerCase())).size !== names.length) return { ok: false, message: 'Each step needs a different title.' };
+    const ids = {}; // item key -> slug
+    const empty = {
+      title: w.title.trim() || 'New plan', updated: null, linksHeading: 'Intersections', links: {},
+      sections: w.steps.map((st, i) => ({ title: names[i], label: st.label.trim(), attach: st.attach, slug: null, color: null, desc: '', items: [] }))
+    };
+    const filled = w.steps.reduce((m, st, i) => {
+      const kept = st.items.filter((it) => it.text.trim() !== '');
+      // An empty step still gets a blank row, so the matrix shows it.
+      return (kept.length ? kept : [{ key: null, text: '', detail: '' }]).reduce((m2, it) => {
+        const id = Component.autoSlug(m2, it.text || names[i], null);
+        if (it.key !== null) ids[it.key] = id;
+        return Component.mapSection(m2, i, (items) => items.concat([{ id: id, text: it.text.trim(), detail: it.detail.replace(/^\s*\n|\s+$/g, '') }]));
+      }, m);
+    }, empty);
+    const links = {};
+    w.steps.forEach((st) => st.items.forEach((it) => it.links.forEach((k) => {
+      if (ids[it.key] && ids[k]) links[Component.linkKey(ids[it.key], ids[k])] = 1;
+    })));
+    const r = Component.parseMd(Component.serializeMd(Object.assign(filled, { links: links })));
+    return r.ok ? r : { ok: false, message: r.error.message };
+  }
+
+  editWiz(fn) { this.setState((s) => ({ wizard: Object.assign({}, fn(s.wizard), { error: null }) })); }
+
+  finishWizard() {
+    const r = Component.wizardModel(this.state.wizard);
+    if (!r.ok) { this.setState((s) => ({ wizard: Object.assign({}, s.wizard, { error: r.message }) })); return; }
+    this.replaceModel(r.model, { wizard: null });
   }
 
   // The Clipboard API only exists on https / localhost; elsewhere (e.g. a
@@ -1838,6 +2056,168 @@ class Component extends DCLogic {
   // =====================================================================
   // View
   // =====================================================================
+
+  // ---------- Description editor: an editable box over a markdown subset ----------
+  // Line for line: each line is a block (a blank line an empty one); "- " / "1. " runs are lists, "#".."###" headings;
+  // **bold**, *italic*, `code` and [links](https://…) inline. Anything else is kept as plain text.
+
+  static mdToHtml(md) {
+    const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    // Escaped first, so the only tags are these; links only to http(s), mailto or the same site.
+    const inline = (t) => esc(t)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*(\S(?:[^*]*\S)?)\*\*/g, '<b>$1</b>')
+      .replace(/\*(\S(?:[^*]*\S)?)\*/g, '<i>$1</i>')
+      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, t2, u) => (/^(https?:|mailto:|\/|#)/i.test(u) ? '<a href="' + u + '">' + t2 + '</a>' : m));
+    const out = [];
+    let list = null;
+    (md || '').split('\n').forEach((l) => {
+      const li = /^\s*(?:([-*])|\d+\.)\s+(.*)$/.exec(l);
+      const tag = li ? (li[1] ? 'ul' : 'ol') : null;
+      if (list && list !== tag) { out.push('</' + list + '>'); list = null; }
+      if (tag) {
+        if (!list) { out.push('<' + tag + '>'); list = tag; }
+        out.push('<li>' + inline(li[2]) + '</li>');
+        return;
+      }
+      const h = /^(#{1,3})\s+(.*)$/.exec(l);
+      out.push(h ? '<h' + h[1].length + '>' + inline(h[2]) + '</h' + h[1].length + '>' : '<div>' + (l.trim() ? inline(l) : '<br>') + '</div>');
+    });
+    if (list) out.push('</' + list + '>');
+    return out.join('');
+  }
+
+  // The editor's DOM -> markdown (the inverse of mdToHtml, for what the browser's editing produces).
+  static htmlToMd(root) {
+    const run = (nodes) => Array.from(nodes).map((c) => {
+      if (c.nodeType === 3) return c.textContent.replace(/\u00a0/g, ' ');
+      if (c.nodeType !== 1) return '';
+      const t = c.tagName;
+      const x = run(c.childNodes);
+      if (t === 'BR') return '\n';
+      if (t === 'B' || t === 'STRONG') return x.trim() ? '**' + x + '**' : x;
+      if (t === 'I' || t === 'EM') return x.trim() ? '*' + x + '*' : x;
+      if (t === 'CODE') return x ? '`' + x + '`' : '';
+      if (t === 'A') return c.getAttribute('href') ? '[' + x + '](' + c.getAttribute('href') + ')' : x;
+      if (/^(DIV|P|H[1-6]|LI|UL|OL)$/.test(t)) return x.replace(/\n$/, '') + '\n';
+      return x;
+    }).join('');
+    const one = (x) => x.replace(/\n+$/, '').replace(/\n/g, ' ');
+    // Browsers nest blocks (a list inside a <div>, say), so blocks holding blocks are walked into.
+    const walk = (node, lines) => {
+      let loose = null; // text straight inside `node`, outside any block
+      const flush = () => { if (loose !== null) lines.push(...loose.replace(/\n$/, '').split('\n')); loose = null; };
+      Array.from(node.childNodes).forEach((c) => {
+        const t = c.nodeType === 1 ? c.tagName : '';
+        if (t === 'UL' || t === 'OL') { flush(); Array.from(c.children).forEach((li, i) => lines.push((t === 'UL' ? '- ' : (i + 1) + '. ') + one(run(li.childNodes)))); }
+        else if (/^H[1-6]$/.test(t)) { flush(); lines.push('#'.repeat(Math.min(3, +t[1])) + ' ' + one(run(c.childNodes)).trim()); }
+        else if (t === 'DIV' || t === 'P') {
+          flush();
+          if (Array.from(c.children).some((k) => /^(DIV|P|H[1-6]|UL|OL)$/.test(k.tagName))) walk(c, lines);
+          else lines.push(run(c.childNodes).replace(/\n$/, ''));
+        }
+        else loose = (loose || '') + run([c]);
+      });
+      flush();
+      return lines;
+    };
+    return walk(root, []).join('\n').replace(/\s+$/, '');
+  }
+
+  // Template values for one editor showing `value`; `onChange(markdown)` as it's edited.
+  // The box's DOM is only rewritten when `value` isn't what it already shows, so the caret stays put.
+  mdEditor(value, onChange, locked) {
+    return {
+      ref: (el) => {
+        if (!el) return;
+        el.contentEditable = locked ? 'false' : 'true';
+        if (Component.htmlToMd(el) !== (value || '')) el.innerHTML = Component.mdToHtml(value);
+      },
+      onInput: (e) => onChange(Component.htmlToMd(e.currentTarget))
+    };
+  }
+
+  // Toolbar buttons: data-cmd names the edit; mousedown keeps the selection in the box.
+  static mdCmd(e) {
+    e.preventDefault();
+    const cmd = e.currentTarget.getAttribute('data-cmd');
+    if (cmd === 'heading') document.execCommand('formatBlock', false, /^h\d$/i.test(document.queryCommandValue('formatBlock')) ? 'div' : 'h3');
+    else if (cmd === 'link') { const u = window.prompt('Link to (https://…)'); if (u) document.execCommand('createLink', false, u); }
+    else document.execCommand(cmd, false, null);
+  }
+
+  // Template values for the wizard `w` (a default one while it's closed).
+  wizVals(w) {
+    const st = w.steps[w.step];
+    const pal = Component.palette()[w.step % Component.palette().length];
+    const last = w.step === w.steps.length - 1;
+    const setStep = (fn) => this.editWiz((x) => Object.assign({}, x, { steps: x.steps.map((t, i) => (i === x.step ? fn(t) : t)) }));
+    const setItem = (patch) => setStep((t) => Object.assign({}, t, { items: t.items.map((it) => (it.key === t.sel ? Object.assign({}, it, patch(it)) : it)) }));
+    const focusTitle = () => setTimeout(() => { const el = document.querySelector('.wiz-focus'); if (el) el.focus(); }, 0);
+    const add = () => {
+      if (st.items.length >= Component.MAX) return;
+      this.editWiz((x) => Object.assign({}, x, {
+        nextKey: x.nextKey + 1,
+        steps: x.steps.map((t, i) => (i === x.step ? Object.assign({}, t, { sel: x.nextKey, items: t.items.concat([{ key: x.nextKey, text: '', detail: '', links: [] }]) }) : t))
+      }));
+      focusTitle();
+    };
+    const go = (i) => this.editWiz((x) => Object.assign({}, x, { step: i }));
+    const sel = st.items.find((it) => it.key === st.sel) || null;
+    const linked = st.link === null ? null : w.steps[st.link];
+    const one = st.title.trim().toLowerCase().replace(/s$/, '') || 'item';
+    const label = (t) => (t.trim() === '' ? 'Untitled' : t);
+    return {
+      vars: '--ac:' + pal.ac + '; --tint:' + pal.tint + '; --tint2:' + pal.tint2 + ';',
+      title: w.title,
+      onTitle: (e) => { const v = e.target.value; this.editWiz((x) => Object.assign({}, x, { title: v })); },
+      steps: w.steps.map((t, i) => ({ n: i + 1, label: t.title, cls: i === w.step ? 'on' : '', current: i === w.step ? 'step' : 'false', go: () => go(i) })),
+      question: (st.attach !== null ? 'Who are your ' : 'What are your ') + (st.title.trim().toLowerCase() || 'items') + '?' + (st.label.trim() ? ' (' + st.label.trim() + ')' : ''),
+      secTitle: st.title,
+      // No ":" (starts the subtitle) or ">" (attaches), as in the details drawer.
+      onSecTitle: (e) => { const v = e.target.value.replace(/[:>\n]/g, ''); setStep((t) => Object.assign({}, t, { title: v })); },
+      secLabel: st.label,
+      onSecLabel: (e) => { const v = e.target.value.replace(/\n/g, ' '); setStep((t) => Object.assign({}, t, { label: v })); },
+      items: st.items.map((it) => ({
+        label: label(it.text),
+        cls: (it.key === st.sel ? 'on' : '') + (it.text.trim() === '' ? ' empty' : ''),
+        onClick: () => { setStep((t) => Object.assign({}, t, { sel: it.key })); focusTitle(); }
+      })),
+      one: one,
+      addDisabled: st.items.length >= Component.MAX,
+      onAdd: add,
+      noSel: sel === null,
+      hasSel: sel !== null,
+      emptyHint: st.items.length === 0 ? 'Add your first ' + one + ' on the left.' : 'Pick one on the left to edit it.',
+      selText: sel ? sel.text : '',
+      onSelText: (e) => { const v = e.target.value; setItem(() => ({ text: v })); },
+      // Enter: on to the next one.
+      onSelKey: (e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } },
+      ed: this.mdEditor(sel ? sel.detail : '', (v) => setItem(() => ({ detail: v }))),
+      onRemove: () => setStep((t) => Object.assign({}, t, { sel: null, items: t.items.filter((it) => it.key !== t.sel) })),
+      hasPills: linked !== null,
+      pillsLabel: linked ? (st.attach !== null ? 'Leads which ' : 'Supports which ') + linked.title.trim().toLowerCase() + '?' : '',
+      pills: linked && sel ? linked.items.map((o) => {
+        const on = sel.links.indexOf(o.key) >= 0;
+        return {
+          label: label(o.text),
+          cls: on ? 'on' : '',
+          pressed: on ? 'true' : 'false',
+          onClick: () => setItem((it) => ({ links: on ? it.links.filter((k) => k !== o.key) : it.links.concat([o.key]) }))
+        };
+      }) : [],
+      noPills: !!linked && linked.items.length === 0,
+      isFirst: w.step === 0,
+      isLast: last,
+      notLast: !last,
+      nextLabel: last ? '' : w.steps[w.step + 1].title,
+      onBack: () => go(Math.max(0, w.step - 1)),
+      onNext: () => go(Math.min(w.steps.length - 1, w.step + 1)),
+      onDone: () => this.finishWizard(),
+      onClose: () => { if (w.steps.every((t) => t.items.length === 0) || window.confirm('Discard this plan?')) this.setState({ wizard: null }); },
+      error: w.error || ''
+    };
+  }
 
   renderVals() {
     const dur = this.props.duration ?? 900;
@@ -2012,7 +2392,7 @@ class Component extends DCLogic {
     // The details drawer: the focused section's colour, short name and
     // description, and each of its items' slug and detail.
     const det = focus === null
-      ? { none: true, some: false, noItem: false, locked: true, color: '#000000', titleText: '', titleStyle: '', titleTip: '', onTitle: () => {}, onTitleBlur: () => {}, label: '', onLabel: () => {}, slug: '', slugPh: '', desc: '', items: [], onColor: () => {}, onSlug: () => {}, onDesc: () => {} }
+      ? { none: true, some: false, noItem: false, locked: true, color: '#000000', titleText: '', titleStyle: '', titleTip: '', onTitle: () => {}, onTitleBlur: () => {}, label: '', onLabel: () => {}, slug: '', slugPh: '', ed: { ref: () => {}, onInput: () => {} }, items: [], onColor: () => {}, onSlug: () => {} }
       : (() => {
           const sec = secs[focus];
           const patch = (p) => { if (!locked) this.applyModel((md) => Component.withSection(md, focus, p), 'sec:' + focus + ':' + Object.keys(p)[0]); };
@@ -2050,7 +2430,7 @@ class Component extends DCLogic {
             onSlug: (e) => patch({ slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/^-+/, '') || null }),
             desc: sec.desc,
             // "slug:" / "color:" lines would parse as attributes.
-            onDesc: (e) => patch({ desc: Component.safeText(e.target.value).replace(/^(slug|color)(\s*:)/gim, '$1 $2') }),
+            ed: this.mdEditor(sec.desc, (v) => patch({ desc: v }), locked),
             // Just the selected item (last focused or added) of this section.
             items: sec.items.map((it, j) => ({ it: it, j: j })).filter((x) => s.sel && s.sel.sec === focus && s.sel.j === x.j).map(({ it, j }) => {
               const code = codes[focus] + (j + 1);
@@ -2070,9 +2450,8 @@ class Component extends DCLogic {
                   this.setState({ slugDraft: null });
                 },
                 onSlugBlur: () => { if (draft !== null) this.setState({ slugDraft: null }); },
-                detail: it.detail || '',
+                ed: this.mdEditor(it.detail, (v) => { if (!locked) this.applyModel((md) => Component.withItem(md, focus, it.id, { detail: v }), 'detail:' + it.id); }, locked),
                 detailAria: code + ' detail',
-                onDetail: (e) => { const v = Component.safeText(e.target.value); if (!locked) this.applyModel((md) => Component.withItem(md, focus, it.id, { detail: v }), 'detail:' + it.id); }
               };
             })
           };
@@ -2188,6 +2567,10 @@ class Component extends DCLogic {
           onCopySrc: () => this.copyLink(srcLink, 'src'),
           onShareDownload: () => { this.setState({ share: null }); this.downloadMd(); },
           onFileNew: () => this.setState({ share: null, draft: Component.defaultDraft(), viewMenu: false }),
+          onFileWizard: () => this.setState({ share: null, newSub: false, wizard: Component.defaultWizard(), viewMenu: false }),
+          newSubCls: s.newSub ? 'open' : '',
+          newSubStr: s.newSub ? 'true' : 'false',
+          toggleNewSub: () => this.setState((st) => ({ newSub: !st.newSub })),
           onFileOpen: () => this.setState({ share: null, open: { url: '', busy: false, error: null, drag: false }, viewMenu: false }),
           onFileDesign: () => { this.setState({ share: null }); this.openSummary(); },
           shareErr: !!(sh && sh.error),
@@ -2214,6 +2597,9 @@ class Component extends DCLogic {
       openUrlLabel: s.open && s.open.busy ? 'Opening…' : 'Open',
       openErr: !!(s.open && s.open.error),
       openErrMessage: s.open && s.open.error ? s.open.error : '',
+      mdCmd: Component.mdCmd,
+      wizOpen: s.wizard !== null,
+      wiz: this.wizVals(s.wizard || Component.defaultWizard()),
       cancelCreate: () => this.setState({ draft: null }),
       stopClick: (e) => e.stopPropagation(),
       onCreateKey: (e) => { if (e.key === 'Escape') this.setState({ draft: null }); },

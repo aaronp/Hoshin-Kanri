@@ -83,8 +83,11 @@ assert.strictEqual(Object.keys(renamed.links).filter((k) => k.split('::').includ
   Object.keys(s2.links).filter((k) => k.split('::').includes('nps')).length);
 assert.deepStrictEqual(parse(C.serializeMd(renamed)), renamed);
 assert.strictEqual(C.stamped(renamed, s2, '2026-11-19').updated.id, 'nps-score');
-// Detail text can't smuggle in items or headings.
-assert.strictEqual(C.safeText('ok\n- not an item\n## nor a heading'), 'ok\nnot an item\nnor a heading');
+// Detail text can't smuggle in items or headings: it is fenced, and comes back as the same detail.
+{
+  const sneaky = C.mapSection(renamed, 0, (items) => items.map((it, j) => (j === 0 ? Object.assign({}, it, { detail: 'ok\n- not an item\n## nor a heading' }) : it)));
+  assert.deepStrictEqual(parse(C.serializeMd(sneaky)), sneaky);
+}
 
 // Automatic slugs: the slugified text, ≤ 12 chars, no trailing hyphen,
 // numbered on a clash.
@@ -169,4 +172,51 @@ assert.ok(!C.parseMd(seed.replace('## Targets to improve: Metrics\n', '## Target
   assert.strictEqual(C.cardSnapshot(s1, { badge: { show: 'item' } }, at, 'h/', '2026-11-18').badge, C.badgeSvg(s1, 'item'));
   assert.strictEqual(C.cardSnapshot(s1, {}, at, 'h/', '2026-11-18', 'crumb').badge, C.badgeSvg(s1, 'crumb'));
   assert.strictEqual(snap.summary, C.summarySvg(s1));
+}
+
+// Wizard: items become sections, pills become links, empty steps get a blank row.
+{
+  const w = C.defaultWizard();
+  const it = (key, text, links) => ({ key: key, text: text, detail: '', links: links || [] });
+  w.steps[0].items = [it(0, 'Grow revenue'), it(9, '  ')];
+  w.steps[1].items = [it(1, 'Launch v1', [0, 9])];
+  w.steps[2].items = [it(2, 'Onboarding', [1])];
+  w.steps[4].items = [it(3, 'Priya', [2])];
+  w.steps[4].items[0].detail = '- leads onboarding';
+  const r = C.wizardModel(w);
+  assert.ok(r.ok, r.message);
+  const m = r.model;
+  assert.deepStrictEqual(m.sections.map((s) => s.items.length), [1, 1, 1, 1, 1]);
+  assert.strictEqual(m.sections[4].attach, 2);
+  assert.strictEqual(m.sections[0].label, '3–5 years');
+  assert.deepStrictEqual(Object.keys(m.links).length, 3);
+  assert.strictEqual(m.links[C.linkKey('priya', 'onboarding')], 1);
+  assert.strictEqual(m.sections[4].items[0].detail, '- leads onboarding'); // kept as markdown
+  w.steps[1].title = 'long-term objectives';
+  assert.ok(!C.wizardModel(w).ok);
+}
+
+// Descriptions: plain lines stay plain; anything else round-trips through a ```md block.
+{
+  const m0 = parse(seed);
+  const desc = '### Why\n\n- one\n- two with `code`\n\n```js\nx()\n```\nslug: not-an-attr';
+  const m1 = C.mapSection(Object.assign({}, m0, { sections: m0.sections.map((s, i) => (i === 0 ? Object.assign({}, s, { desc: desc }) : s)) }), 1, (items) => items.map((it, j) => (j === 0 ? Object.assign({}, it, { detail: '  indented\n\nsecond para' }) : it)));
+  const md = C.serializeMd(m1);
+  assert.ok(md.includes('\n````md\n### Why\n'));
+  assert.ok(md.includes('\n  ```md\n    indented\n\n  second para\n  ```\n'));
+  const back = parse(md);
+  assert.strictEqual(back.sections[0].desc, desc);
+  assert.strictEqual(back.sections[1].items[0].detail, '  indented\n\nsecond para');
+  assert.strictEqual(C.serializeMd(back), md);
+  assert.strictEqual(C.serializeMd(m0), seed); // plain files are unchanged
+  assert.strictEqual(C.parseMd('# T\n## A\n- a: A\n  ```md\n  open').error.line, 4);
+}
+
+// The description editor's HTML: markup in the text is escaped, only safe links become links.
+{
+  const h = C.mdToHtml('<img src=x onerror=alert(1)>\n[x](javascript:alert(1)) [ok](https://a.b/c?d="e")\n- **b** *i* `c`\n\n### H');
+  assert.ok(!h.includes('<img') && h.includes('&lt;img'));
+  assert.ok(!h.includes('href="javascript'));
+  assert.ok(h.includes('<a href="https://a.b/c?d=&quot;e&quot;">ok</a>'));
+  assert.ok(h.includes('<ul><li><b>b</b> <i>i</i> <code>c</code></li></ul><div><br></div><h3>H</h3>'));
 }
