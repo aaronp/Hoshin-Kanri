@@ -4,7 +4,7 @@
 <script>
   // The viewer lives in its own repo; this repo only holds the data.
   // Extra query params are passed through (e.g. ?view=top-level-priorities).
-  const VIEWER = 'https://aaronp.github.io/Hoshin-Kanri/';
+  const VIEWER = 'https://aaronp.github.io/hoshin-kanri/';
   const src = new URL('x-matrix.md', location.href).href;
   location.replace(VIEWER + '?src=' + encodeURIComponent(src) + location.search.replace(/^\?/, '&') + location.hash);
 </script>

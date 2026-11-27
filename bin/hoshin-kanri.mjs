@@ -4,7 +4,7 @@
 // hoshin-kanri badge <x-matrix.md> [out-dir] [show]: writes badge.svg and summary.svg (out-dir defaults to the file's folder).
 // Both read the optional card settings beside the markdown, <name>.card.json, made in the card designer (summary.html).
 // hoshin-kanri card <x-matrix.md> [out-dir]: writes card.json, the plan as a dashboard card (the format `adr card` writes).
-// The card's links open the viewer at HK_HOST (default https://aaronp.github.io/Hoshin-Kanri/) with ?src=HK_SRC,
+// The card's links open the viewer at HK_HOST (default https://aaronp.github.io/hoshin-kanri/) with ?src=HK_SRC,
 // where HK_SRC is where the published markdown lives (default: the path given, relative to HK_HOST).
 import { createServer } from 'node:http';
 import { readFile, rename, writeFile } from 'node:fs/promises';

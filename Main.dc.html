@@ -618,7 +618,7 @@ class Component extends DCLogic {
       autosave: (() => { try { return localStorage.getItem('hk-autosave') !== '0'; } catch (e) { return true; } })(),
       saveSub: false, // File › Save › submenu open (it also opens on hover)
       newSub: false, // File › New › submenu open (it also opens on hover)
-      wizard: new URLSearchParams(location.search).has('wizard') ? Component.defaultWizard() : null, // File › New › Wizard (or ?wizard): see defaultWizard()
+      wizard: new URLSearchParams(location.search).has('wizard') ? Component.wizardFromUrl(new URLSearchParams(location.search)) : null, // File › New › Wizard (or ?wizard): see defaultWizard()
       share: null // the Share menu: { link (snapshot, null while packing), copied: 'snap' | 'src' | null, error, fallback }
     }, Component.viewFromUrl(parsed.model));
     this.ro = null;
@@ -1251,7 +1251,7 @@ class Component extends DCLogic {
   // A plan stamped within 90 days is "good", older is "warn", never stamped is "neutral".
   static card(model, at, host, today, prefs) {
     prefs = prefs || {};
-    host = host || 'https://aaronp.github.io/Hoshin-Kanri/';
+    host = host || 'https://aaronp.github.io/hoshin-kanri/';
     const open = host + '?src=' + encodeURIComponent(at.src).replace(/%2F/gi, '/').replace(/%3A/gi, ':');
     const secs = Component.cardSections(model);
     const byId = Object.fromEntries(secs.map((x) => [x.id, x]));
@@ -1982,6 +1982,17 @@ class Component extends DCLogic {
     return { title: 'New plan', step: 0, steps: steps, nextKey: 0, error: null };
   }
 
+  // ?wizard&title=Plan&title1=…&subtitle1=… : defaults for the plan name and each step's title / subtitle (1-based).
+  static wizardFromUrl(q) {
+    const w = Component.defaultWizard();
+    if (q.get('title')) w.title = q.get('title');
+    w.steps.forEach((st, i) => {
+      if (q.get('title' + (i + 1))) st.title = q.get('title' + (i + 1));
+      if (q.has('subtitle' + (i + 1))) st.label = q.get('subtitle' + (i + 1));
+    });
+    return w;
+  }
+
   // Wizard -> model, checked by a markdown round trip. { ok, model } or { ok: false, message }.
   static wizardModel(w) {
     const names = w.steps.map((st) => st.title.trim());
@@ -2173,7 +2184,7 @@ class Component extends DCLogic {
       title: w.title,
       onTitle: (e) => { const v = e.target.value; this.editWiz((x) => Object.assign({}, x, { title: v })); },
       steps: w.steps.map((t, i) => ({ n: i + 1, label: t.title, cls: i === w.step ? 'on' : '', current: i === w.step ? 'step' : 'false', go: () => go(i) })),
-      question: (st.attach !== null ? 'Who are your ' : 'What are your ') + (st.title.trim().toLowerCase() || 'items') + '?' + (st.label.trim() ? ' (' + st.label.trim() + ')' : ''),
+      question: (st.title.trim() || 'Items') + (st.label.trim() ? ' (' + st.label.trim() + ')' : ''),
       secTitle: st.title,
       // No ":" (starts the subtitle) or ">" (attaches), as in the details drawer.
       onSecTitle: (e) => { const v = e.target.value.replace(/[:>\n]/g, ''); setStep((t) => Object.assign({}, t, { title: v })); },

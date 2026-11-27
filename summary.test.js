@@ -138,7 +138,7 @@ assert.ok(!C.parseMd(seed.replace('## Targets to improve: Metrics\n', '## Target
   assert.strictEqual(c.heading.primary, String(s1.sections[0].items.length));
   assert.strictEqual(c.legend.length, s1.sections.length);
   assert.strictEqual(c.report[c.legend[1].id], s1.sections[1].items.length);
-  assert.strictEqual(c.legend[1].url, 'https://aaronp.github.io/Hoshin-Kanri/?src=https://you.github.io/plan/x-matrix.md&view=annual-objectives');
+  assert.strictEqual(c.legend[1].url, 'https://aaronp.github.io/hoshin-kanri/?src=https://you.github.io/plan/x-matrix.md&view=annual-objectives');
   assert.strictEqual(C.card(s1, { label: 'x', src: 'x' }, 'h/', '2027-06-01').status.tone, 'warn');
   assert.strictEqual(C.card(m, { label: 'x', src: 'x' }, 'h/', '2027-06-01').status.tone, 'neutral');
 }
