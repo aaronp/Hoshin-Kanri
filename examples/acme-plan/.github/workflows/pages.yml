@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Render badge.svg and summary.svg from x-matrix.md
         run: |
-          V=https://aaronp.github.io/Hoshin-Kanri
+          V=https://aaronp.github.io/hoshin-kanri
           curl -sfL $V/summary.js -o "$RUNNER_TEMP/summary.js"
           curl -sfL $V/Main.dc.html -o "$RUNNER_TEMP/Main.dc.html"
           node "$RUNNER_TEMP/summary.js" x-matrix.md

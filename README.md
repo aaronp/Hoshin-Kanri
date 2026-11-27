@@ -1,7 +1,7 @@
 # X-Matrix builder — design reference
 
-**[▶ Open the live X-Matrix](https://aaronp.github.io/Hoshin-Kanri/)** ·
-[Acme example](https://aaronp.github.io/Hoshin-Kanri/?src=examples/acme-plan/x-matrix.md)
+**[▶ Open the live X-Matrix](https://aaronp.github.io/hoshin-kanri/)** ·
+[Acme example](https://aaronp.github.io/hoshin-kanri/?src=examples/acme-plan/x-matrix.md)
 
 ## Adding it to your project
 
@@ -54,7 +54,7 @@ bun run goals    # opens it on localhost
 ```
 
 **Save** in the viewer writes your edits back to `docs/goals/x-matrix.md`, stamped with what changed; commit
-it like any other source. The full format is in **[spec.md](spec.md)**, also published at <https://aaronp.github.io/Hoshin-Kanri/spec.md> and shipped in the package as `node_modules/@pritzlaff/hoshin-kanri/spec.md`, so people and agents working in your repo can read the version they run.
+it like any other source. The full format is in **[spec.md](spec.md)**, also published at <https://aaronp.github.io/hoshin-kanri/spec.md> and shipped in the package as `node_modules/@pritzlaff/hoshin-kanri/spec.md`, so people and agents working in your repo can read the version they run.
 
 `hoshin-kanri card docs/goals/x-matrix.md` and `hoshin-kanri badge docs/goals/x-matrix.md` write
 `card.json`, `badge.svg` and `summary.svg` beside it, for a dashboard or a README badge
@@ -131,7 +131,9 @@ The **File** menu in the title bar:
 - **New…** starts a new X-Matrix (name it and choose its sections).
   **New › Wizard…** walks through it step by step: long-term objectives, short-term objectives, priorities,
   targets and owners, linking each to the step before. Link straight to it with `?wizard`, e.g.
-  `https://aaronp.github.io/Hoshin-Kanri/?wizard`.
+  `https://aaronp.github.io/hoshin-kanri/?wizard`. Optional defaults: `title` (the plan name), and
+  `title1`…`title5` / `subtitle1`…`subtitle5` for each step, e.g.
+  `?wizard&title=FY27%20plan&title1=Vision&subtitle1=10%20years`.
 - **Open…** loads a dropped or chosen `.md` file, or a URL (which then becomes `?src=`, so the page is shareable).
 - **Save** (only when the `hoshin-kanri` CLI or `make dev` serves the file) writes it back, stamped.
   **Save ›** holds the **Autosave** toggle (on by default, remembered in the browser): edits are written
@@ -146,7 +148,7 @@ The **File** menu in the title bar:
 - **Design card…** opens the [card designer](#card-designer-and-settings).
 
 Or load any markdown with `?src=<url>` (absolute, or relative to the page), e.g.
-`https://aaronp.github.io/Hoshin-Kanri/?src=examples/acme-plan/x-matrix.md`.
+`https://aaronp.github.io/hoshin-kanri/?src=examples/acme-plan/x-matrix.md`.
 The source must allow CORS (GitHub Pages and raw.githubusercontent.com do).
 
 Other params (kept in sync as you click, so the URL is always shareable):
@@ -231,8 +233,8 @@ either:
 **A. Start from `examples/` in this repo**
 
 ```sh
-git clone https://github.com/aaronp/Hoshin-Kanri.git
-cd Hoshin-Kanri/examples/acme-plan
+git clone https://github.com/aaronp/hoshin-kanri.git
+cd hoshin-kanri/examples/acme-plan
 make clone REPO=you/your-plan    # or ./clone.sh to be prompted
 ```
 

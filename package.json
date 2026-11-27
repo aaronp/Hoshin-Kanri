@@ -5,9 +5,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aaronp/Hoshin-Kanri.git"
+    "url": "git+https://github.com/aaronp/hoshin-kanri.git"
   },
-  "homepage": "https://aaronp.github.io/Hoshin-Kanri/",
+  "homepage": "https://aaronp.github.io/hoshin-kanri/",
   "bin": {
     "hoshin-kanri": "bin/hoshin-kanri.mjs"
   },

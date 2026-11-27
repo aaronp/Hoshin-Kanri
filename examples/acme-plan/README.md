@@ -6,7 +6,7 @@
 [![X-Matrix summary](https://aaronp.github.io/hoshin-kanri-example/summary.svg)](https://aaronp.github.io/hoshin-kanri-example/)
 
 The data lives in [`x-matrix.md`](x-matrix.md). The UI comes from
-[aaronp/Hoshin-Kanri](https://github.com/aaronp/Hoshin-Kanri).
+[aaronp/hoshin-kanri](https://github.com/aaronp/hoshin-kanri).
 
 ## Using this as a template
 
@@ -32,4 +32,4 @@ Your site redirects to the viewer with `?src=` pointing at your
 `?view=top-level-priorities` or `?markdown&details`.
 
 No Pages? Link straight to the raw file:
-`https://aaronp.github.io/Hoshin-Kanri/?src=https://raw.githubusercontent.com/<you>/<repo>/<branch>/x-matrix.md`
+`https://aaronp.github.io/hoshin-kanri/?src=https://raw.githubusercontent.com/<you>/<repo>/<branch>/x-matrix.md`

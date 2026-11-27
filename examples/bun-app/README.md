@@ -29,4 +29,4 @@ published beside it for your README:
  On GitHub: Settings → Pages → Source: **GitHub Actions**.
 
 Live copy of this example:
-[aaronp.github.io/Hoshin-Kanri/?src=examples/bun-app/plan/x-matrix.md](https://aaronp.github.io/Hoshin-Kanri/?src=examples/bun-app/plan/x-matrix.md)
+[aaronp.github.io/hoshin-kanri/?src=examples/bun-app/plan/x-matrix.md](https://aaronp.github.io/hoshin-kanri/?src=examples/bun-app/plan/x-matrix.md)
